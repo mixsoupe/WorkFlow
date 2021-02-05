@@ -22,7 +22,6 @@ bl_info = {
     "category" : "",
 }
 
-#TEst 01
 import bpy
 import os
 from bpy_extras.io_utils import ImportHelper
