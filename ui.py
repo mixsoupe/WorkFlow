@@ -13,6 +13,9 @@
 
 
 import bpy
+
+from . import addon_updater_ops
+
 import os
 from bpy_extras.io_utils import ImportHelper
 from . functions import *
@@ -82,6 +85,7 @@ class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
         layout.operator("workflow.playblast")
         layout.operator("workflow.export_anim")
         layout.operator("workflow.import_anim")
+
 
 class WORKFLOW_PT_view3d_production(bpy.types.Panel):
     bl_label = "Production"
