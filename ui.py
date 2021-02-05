@@ -73,7 +73,7 @@ class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
         layout.operator("workflow.sync_visibility")
 
 class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
-    bl_label = "Animation Tools"
+    bl_label = "AAAAAAAnimation Tools"
     bl_idname = "WORKFLOW_PT_view_3D_animation_tools"
     bl_space_type = "VIEW_3D"   
     bl_region_type = "UI"
