@@ -306,21 +306,26 @@ class WORKFLOW_OT_export_anim(bpy.types.Operator, ExportHelper):
         
         return {'RUNNING_MODAL'}
 
-class WORKFLOW_OT_sync_export_anim_override(bpy.types.Operator):
+class WORKFLOW_OT_export_dummy(bpy.types.Operator):
     
-    bl_idname = "workflow.export_anim_override"
-    bl_label = "Export Animation"
+    bl_idname = "workflow.export_dummy"
+    bl_label = "dummy"
 
     def execute(self, context):
         screen = context.screen
         override = bpy.context.copy()
 
-        # Update the context 
+        # Update the context
+        dopesheet_count = 0
         for area in screen.areas:
             if area.type == 'DOPESHEET_EDITOR':
+                dopesheet_count += 1
                 for region in area.regions:
                     if region.type == 'WINDOW':
                         override = {'region': region, 'area': area}
+        if dopesheet_count>1:
+            self.report({'ERROR'}, 'Too many dopesheets. Call the operator (F3 > Export Animation) from the dopesheet')
+            return {'CANCELLED'}
 
         bpy.ops.workflow.export_anim(override, 'INVOKE_DEFAULT')
         return {'FINISHED'}
