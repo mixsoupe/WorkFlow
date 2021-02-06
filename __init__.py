@@ -81,7 +81,6 @@ class WORKFLOW_Preferences(bpy.types.AddonPreferences):
     )
 
 
-
     def draw(self, context):
         layout = self.layout
         column = layout.column()
@@ -116,6 +115,7 @@ classes = (
     WORKFLOW_OT_sync_visibility,
     WORKFLOW_OT_load_asset,
     WORKFLOW_OT_export_anim,
+    WORKFLOW_OT_sync_export_anim_override,
     WORKFLOW_OT_import_anim,
     WORKFLOW_OT_apply_anim,
     WORKFLOW_OT_copy_material,

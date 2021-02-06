@@ -306,6 +306,25 @@ class WORKFLOW_OT_export_anim(bpy.types.Operator, ExportHelper):
         
         return {'RUNNING_MODAL'}
 
+class WORKFLOW_OT_sync_export_anim_override(bpy.types.Operator):
+    
+    bl_idname = "workflow.export_anim_override"
+    bl_label = "Export Animation"
+
+    def execute(self, context):
+        screen = context.screen
+        override = bpy.context.copy()
+
+        # Update the context 
+        for area in screen.areas:
+            if area.type == 'DOPESHEET_EDITOR':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        override = {'region': region, 'area': area}
+
+        bpy.ops.workflow.export_anim(override, 'INVOKE_DEFAULT')
+        return {'FINISHED'}
+
 
 class WORKFLOW_OT_import_anim(bpy.types.Operator, ImportHelper):
     
@@ -326,8 +345,7 @@ class WORKFLOW_OT_import_anim(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         bpy.context.scene.animation_filepath = self.filepath
         bpy.ops.workflow.apply_anim('INVOKE_DEFAULT')
-        #bpy.ops.object.modal_operator('INVOKE_DEFAULT')
-        #self.report({'INFO'}, 'Animation imported')        
+     
         return {'FINISHED'}
     
     def invoke(self, context, event):
@@ -336,7 +354,6 @@ class WORKFLOW_OT_import_anim(bpy.types.Operator, ImportHelper):
         wm = context.window_manager.fileselect_add(self)
         
         return {'RUNNING_MODAL'}
-
 
 
 class WORKFLOW_OT_apply_anim(bpy.types.Operator):
@@ -350,16 +367,20 @@ class WORKFLOW_OT_apply_anim(bpy.types.Operator):
     def execute(self, context):    
         #browser = bpy.context.space_data.params
         #filepath = os.path.join(str(browser.directory, 'utf-8'), browser.filename)
-
-        with open(self.filepath) as infile:
-            anim = json.load(infile)
-            set_animation(anim, self.mix_factor)
-
+        set_animation(self.anim, self.mix_factor)
         return {'FINISHED'}
     
-    def invoke(self, context, event):
-        self.filepath = bpy.context.scene.animation_filepath
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-    
+    def modal(self, context, event):
+        if event.type == 'MOUSEMOVE':
+            set_animation(self.anim, self.mix_factor)
+            return {'FINISHED'}
 
+        return {'RUNNING_MODAL'}
+    
+    def invoke(self, context, event):
+        filepath = bpy.context.scene.animation_filepath
+        with open(filepath) as infile:
+            self.anim = json.load(infile)
+        
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}

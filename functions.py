@@ -345,33 +345,17 @@ def get_animation():
     obj = bpy.context.object
 
     if obj.animation_data.action is not None:
-        action = obj.animation_data.action
-
-        anim = []
+        animation_data = []
         selection = False
         frame = []
-        
-        #Get selected bones
-        selected_bones = []
-        if obj.type == 'ARMATURE':
-            for bone in obj.data.bones:
-                if bone.select:
-                    selected_bones.append(bone.name)
-           
-        for fcu in action.fcurves:
-            #Check if bone is selected
-            if obj.type == 'ARMATURE':
-                if fcu.data_path.split('[')[0] == "pose.bones":
-                    fcu_bone_name = fcu.data_path.split('"')[1]
-                    if fcu_bone_name not in selected_bones:
-                        continue
 
+        for fcu in bpy.context.visible_fcurves:
             keys = []   
             for keyframe in fcu.keyframe_points:
                 if keyframe.select_control_point == True:
                     key = []
                     selection = True
-                    
+
                     frame.append(keyframe.co[0])
                     key.append(keyframe.co[:])                                       
                     key.append(keyframe.handle_left[:])                    
@@ -384,21 +368,31 @@ def get_animation():
 
             if keys :     
                 fcurve = (fcu.data_path, fcu.array_index, keys)
-                anim.append(fcurve)        
+                animation_data.append(fcurve)        
         
         if frame:
-            anim.append(min(frame))
+            if min(frame) == max(frame):
+                animation_type = "POSE"
+            else:
+                animation_type = "ANIM"
+            animation_data.append((min(frame), animation_type))
 
         if selection:
-            return anim
+            return animation_data
         else:
             return "error"
     else:
         return "error"
 
 def set_animation(anim, mix_factor):
-    first_frame = anim[-1]
-    
+    first_frame = anim[-1][0]
+    animation_type = anim[-1][1]
+
+    if animation_type == "POSE":
+        mix = True
+    else:
+        mix = False
+
     frame_current = bpy.context.scene.frame_current
     frame_delta = frame_current - first_frame
 
@@ -429,8 +423,6 @@ def set_animation(anim, mix_factor):
         fcu = action.fcurves.find(data_path=a[0], index=a[1])
         if fcu is None:
             fcu = action.fcurves.new(data_path=a[0], index=a[1])
-
-        mix = True
         
         for key in a[2]:
             frame = key[0][0] + frame_delta
