@@ -384,10 +384,3 @@ class WORKFLOW_OT_apply_anim(bpy.types.Operator):
         
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
-
-    def draw(self, context):
-        self.layout.use_property_split = True
-
-        row = self.layout.row()
-        if self.anim[-1][1] == "POSE":
-            row.prop(self, "mix_factor")
