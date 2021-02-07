@@ -371,11 +371,7 @@ def get_animation():
                 animation_data.append(fcurve)        
         
         if frame:
-            if min(frame) == max(frame):
-                animation_type = "POSE"
-            else:
-                animation_type = "ANIM"
-            animation_data.append((min(frame), animation_type))
+            animation_data.append((min(frame), max(frame)))
 
         if selection:
             return animation_data
@@ -386,9 +382,9 @@ def get_animation():
 
 def set_animation(anim, mix_factor):
     first_frame = anim[-1][0]
-    animation_type = anim[-1][1]
+    last_frame = anim[-1][1]
 
-    if animation_type == "POSE":
+    if first_frame == last_frame:
         mix = True
     else:
         mix = False
@@ -449,6 +445,71 @@ def set_animation(anim, mix_factor):
                 keyframe.handle_right = (handle_right_x, handle_right_y)            
             keyframe.interpolation = interpolation
             keyframe.easing = easing
-        
 
+
+def export_thumbnail(first_frame, last_frame, output_file):
     
+    #Bake
+    settings = (
+        bpy.context.scene.render.resolution_x,
+        bpy.context.scene.render.resolution_y,
+        bpy.context.scene.frame_start,
+        bpy.context.scene.frame_end,
+        bpy.context.scene.render.film_transparent,
+        )
+
+    #Disable overlay
+    overlays = []
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    for space in area.spaces:
+                        if space.type == 'VIEW_3D':
+                            overlays.append(space.overlay.show_overlays)
+                            space.overlay.show_overlays = False
+
+
+    bpy.context.scene.render.resolution_x = 512
+    bpy.context.scene.render.resolution_y = 512
+    bpy.context.scene.frame_start = first_frame
+    bpy.context.scene.frame_end = last_frame
+    bpy.context.scene.render.film_transparent = False
+    #bpy.context.screen
+
+    #ANIMATION
+    if first_frame == last_frame:
+        bpy.context.scene.render.image_settings.file_format = "PNG"
+        bpy.context.scene.render.image_settings.color_mode = "RGB"
+        bpy.context.scene.render.image_settings.color_depth = "8"
+        bpy.context.scene.render.image_settings.compression = 15
+        bpy.context.scene.render.filepath = output_file + ".png"
+        bpy.ops.render.opengl(write_still=True)
+
+    else:
+        bpy.context.scene.render.image_settings.file_format = "FFMPEG"
+        bpy.context.scene.render.image_settings.color_mode = "RGB"
+        bpy.context.scene.render.ffmpeg.format = "QUICKTIME"
+        bpy.context.scene.render.ffmpeg.codec = "H264"
+        bpy.context.scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
+        bpy.context.scene.render.ffmpeg.ffmpeg_preset = "GOOD"
+        bpy.context.scene.render.ffmpeg.audio_codec = "NONE"
+        bpy.context.scene.render.filepath = output_file + ".mov"
+        
+        bpy.ops.render.opengl(animation=True)
+
+    #Restore
+    (bpy.context.scene.render.resolution_x,
+    bpy.context.scene.render.resolution_y,
+    bpy.context.scene.frame_start,
+    bpy.context.scene.frame_end,
+    bpy.context.scene.render.film_transparent) = settings
+
+    #Restore overlays
+    i = 0
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    for space in area.spaces:
+                        if space.type == 'VIEW_3D':
+                            space.overlay.show_overlays = overlays[i]
+                            i += 1

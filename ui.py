@@ -83,8 +83,8 @@ class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.operator("workflow.playblast")
-        layout.operator("workflow.export_dummy", text="Export Animation")
-        layout.operator("workflow.import_anim")
+        layout.operator("workflow.export_dummy", text="Export Keyframes")
+        layout.operator("workflow.import_keyframes")
 
 class WORKFLOW_PT_view3d_production(bpy.types.Panel):
     bl_label = "Production"

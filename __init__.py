@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 1, 2),
+    "version" : (1, 1, 3),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -114,10 +114,10 @@ classes = (
     WORKFLOW_OT_playblast,
     WORKFLOW_OT_sync_visibility,
     WORKFLOW_OT_load_asset,
-    WORKFLOW_OT_export_anim,
+    WORKFLOW_OT_export_keyframes,
     WORKFLOW_OT_export_dummy,
-    WORKFLOW_OT_import_anim,
-    WORKFLOW_OT_apply_anim,
+    WORKFLOW_OT_import_keyframes,
+    WORKFLOW_OT_apply_keyframes,
     WORKFLOW_OT_copy_material,
     )
 

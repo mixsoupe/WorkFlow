@@ -267,10 +267,10 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
         return {'RUNNING_MODAL'}
 
 
-class WORKFLOW_OT_export_anim(bpy.types.Operator, ExportHelper):
+class WORKFLOW_OT_export_keyframes(bpy.types.Operator, ExportHelper):
     
-    bl_idname = "workflow.export_anim"
-    bl_label = "Export Animation"
+    bl_idname = "workflow.export_keyframes"
+    bl_label = "Export Keyframes"
 
     filepath = bpy.props.StringProperty(
         name="File Path", 
@@ -278,26 +278,30 @@ class WORKFLOW_OT_export_anim(bpy.types.Operator, ExportHelper):
         )
 
     filter_glob: bpy.props.StringProperty(
-        default="*.json",
+        default="*.png;*.mov",
         options={'HIDDEN'},
         maxlen=255,
     )
     
-    filename_ext = ".json"
+    filename_ext = ""
 
     def execute(self, context):
 
+        json_file = os.path.splitext(self.filepath)[0]+".json"
+        thumbnail_file = os.path.splitext(self.filepath)[0]
 
-        with open(self.filepath, 'w') as outfile:
+        with open(json_file, 'w') as outfile:
             json.dump(self.anim, outfile)
+        
+        export_thumbnail(self.anim[-1][0], self.anim[-1][1], thumbnail_file) 
 
-        self.report({'INFO'}, 'Animation exported')
+        self.report({'INFO'}, 'Keyframes exported')
         return {'FINISHED'}
     
     def invoke(self, context, event):
         self.anim = get_animation()
         if self.anim == "error":
-            self.report({'ERROR'}, 'No animation selected')
+            self.report({'ERROR'}, 'No keyframe selected')
             return {'CANCELLED'}
 
         if context.preferences.addons['WorkFlow'].preferences.asset_path:
@@ -324,17 +328,23 @@ class WORKFLOW_OT_export_dummy(bpy.types.Operator):
                     if region.type == 'WINDOW':
                         override = {'region': region, 'area': area}
         if dopesheet_count>1:
-            self.report({'ERROR'}, 'Too many dopesheets. Call the operator (F3 > Export Animation) from the dopesheet')
+            self.report({'ERROR'}, 'Too many dopesheets. Call the operator (F3 > Export Keyframes) from the dopesheet')
             return {'CANCELLED'}
 
-        bpy.ops.workflow.export_anim(override, 'INVOKE_DEFAULT')
-        return {'FINISHED'}
+        try:
+            bpy.ops.workflow.export_keyframes(override, 'INVOKE_DEFAULT')
+            return {'FINISHED'}
+            
+        except RuntimeError as ex:
+            error_report = "\n".join(ex.args)
+            self.report({'ERROR'}, error_report)
+            return {'CANCELLED'}
 
 
-class WORKFLOW_OT_import_anim(bpy.types.Operator, ImportHelper):
+class WORKFLOW_OT_import_keyframes(bpy.types.Operator, ImportHelper):
     
-    bl_idname = "workflow.import_anim"
-    bl_label = "Import Animation"
+    bl_idname = "workflow.import_keyframes"
+    bl_label = "Import Keyframes"
 
     filepath = bpy.props.StringProperty(
         name="File Path",
@@ -342,14 +352,15 @@ class WORKFLOW_OT_import_anim(bpy.types.Operator, ImportHelper):
         )
 
     filter_glob: bpy.props.StringProperty(
-        default="*.json",
+        default="*.png;*.mov",
         options={'HIDDEN'},
         maxlen=255,
     )
 
     def execute(self, context):
-        bpy.context.scene.animation_filepath = self.filepath
-        bpy.ops.workflow.apply_anim('INVOKE_DEFAULT')
+        json_file = (os.path.splitext(self.filepath)[0] + ".json")
+        bpy.context.scene.animation_filepath = json_file
+        bpy.ops.workflow.apply_keyframes('INVOKE_DEFAULT')
      
         return {'FINISHED'}
     
@@ -361,10 +372,10 @@ class WORKFLOW_OT_import_anim(bpy.types.Operator, ImportHelper):
         return {'RUNNING_MODAL'}
 
 
-class WORKFLOW_OT_apply_anim(bpy.types.Operator):
+class WORKFLOW_OT_apply_keyframes(bpy.types.Operator):
     
-    bl_idname = "workflow.apply_anim"
-    bl_label = "Apply Animation"
+    bl_idname = "workflow.apply_keyframes"
+    bl_label = "Apply Keyframes"
     bl_options = {"REGISTER", "UNDO"}
 
     mix_factor : bpy.props.FloatProperty(name = "Mix Factor", default = 1.0, min = 0, max = 1.0)
@@ -394,5 +405,5 @@ class WORKFLOW_OT_apply_anim(bpy.types.Operator):
         self.layout.use_property_split = True
 
         row = self.layout.row()
-        if self.anim[-1][1] == "POSE":
+        if self.anim[-1][0] == self.anim[-1][1]:
             row.prop(self, "mix_factor")
