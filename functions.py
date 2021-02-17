@@ -533,50 +533,51 @@ def copy_keyframe(previous = False, next = False, ):
             if bone.select:
                 selected_bones.append(bone.name)
 
-    if obj.animation_data.action is not None:           
-        for fcu in obj.animation_data.action.fcurves:
+    if obj.animation_data is not None:  
+        if obj.animation_data.action is not None:           
+            for fcu in obj.animation_data.action.fcurves:
 
-            #Check if bone is selected
-            if selected_bones:
-                anim_bone_name = fcu.data_path.split('"')[1]
-                if anim_bone_name not in selected_bones:
-                    continue
+                #Check if bone is selected
+                if selected_bones:
+                    anim_bone_name = fcu.data_path.split('"')[1]
+                    if anim_bone_name not in selected_bones:
+                        continue
 
-            #Get keyframe
-            frames = []
-            is_key = False
-            for keyframe in fcu.keyframe_points:
-                if previous:                
-                    if keyframe.co[0] < frame_current:
-                        is_key = True
-                        frames.append(keyframe.co[0])
-                    else:
-                        frames.append(1000000)
+                #Get keyframe
+                frames = []
+                is_key = False
+                for keyframe in fcu.keyframe_points:
+                    if previous:                
+                        if keyframe.co[0] < frame_current:
+                            is_key = True
+                            frames.append(keyframe.co[0])
+                        else:
+                            frames.append(1000000)
 
-                if next:                
-                    if keyframe.co[0] > frame_current:
-                        is_key = True
-                        frames.append(keyframe.co[0])
-                    else:
-                        frames.append(1000000)
+                    if next:                
+                        if keyframe.co[0] > frame_current:
+                            is_key = True
+                            frames.append(keyframe.co[0])
+                        else:
+                            frames.append(1000000)
 
-            if is_key:
-                frames = np.asarray(frames)
-                index = (np.abs(frames-frame_current)).argmin()   
-                
-                keyframe = fcu.keyframe_points[index]
-                frame_delta = frame_current - keyframe.co[0]
+                if is_key:
+                    frames = np.asarray(frames)
+                    index = (np.abs(frames-frame_current)).argmin()   
+                    
+                    keyframe = fcu.keyframe_points[index]
+                    frame_delta = frame_current - keyframe.co[0]
 
-                new_keyframe = fcu.keyframe_points.insert(frame_current, keyframe.co[1])    
+                    new_keyframe = fcu.keyframe_points.insert(frame_current, keyframe.co[1])    
 
-                new_keyframe.handle_left_type = keyframe.handle_left_type
-                new_keyframe.handle_right_type = keyframe.handle_right_type
+                    new_keyframe.handle_left_type = keyframe.handle_left_type
+                    new_keyframe.handle_right_type = keyframe.handle_right_type
 
-                new_keyframe.handle_left = (keyframe.handle_left[0]+frame_delta, keyframe.handle_left[1])            
-                new_keyframe.handle_right = (keyframe.handle_right[0]+frame_delta, keyframe.handle_right[1])  
+                    new_keyframe.handle_left = (keyframe.handle_left[0]+frame_delta, keyframe.handle_left[1])            
+                    new_keyframe.handle_right = (keyframe.handle_right[0]+frame_delta, keyframe.handle_right[1])  
 
-                new_keyframe.interpolation = keyframe.interpolation
-                new_keyframe.easing = keyframe.easing
+                    new_keyframe.interpolation = keyframe.interpolation
+                    new_keyframe.easing = keyframe.easing
             
 
 

@@ -293,6 +293,14 @@ class WORKFLOW_OT_export_dummy(bpy.types.Operator):
     bl_idname = "workflow.export_dummy"
     bl_label = "dummy"
 
+    @classmethod
+    def poll(cls,context):
+        obj = context.active_object
+        if obj is not None:
+            if obj.animation_data is not None:  
+                if obj.animation_data.action is not None: 
+                    return True
+
     def execute(self, context):
         screen = context.screen
         override = bpy.context.copy()
@@ -334,6 +342,12 @@ class WORKFLOW_OT_import_keyframes(bpy.types.Operator, ImportHelper):
         options={'HIDDEN'},
         maxlen=255,
     )
+
+    @classmethod
+    def poll(cls,context):
+        obj = context.active_object
+        if obj is not None:
+            return True
 
     def execute(self, context):
         json_file = (os.path.splitext(self.filepath)[0] + ".json")
@@ -392,6 +406,14 @@ class WORKFLOW_OT_copy_previous_keyframe(bpy.types.Operator):
     bl_idname = "workflow.copy_previous_keyframe"
     bl_label = "Copy Previous Keyframe"
     bl_options = {"REGISTER", "UNDO"}
+    
+    @classmethod
+    def poll(cls,context):
+        obj = context.active_object
+        if obj is not None:
+            if obj.animation_data is not None:  
+                if obj.animation_data.action is not None: 
+                    return True
 
     def execute(self, context):
         copy_keyframe(previous = True)
@@ -403,6 +425,14 @@ class WORKFLOW_OT_next_next_keyframe(bpy.types.Operator):
     bl_idname = "workflow.copy_next_keyframe"
     bl_label = "Copy Next Keyframe"
     bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls,context):
+        obj = context.active_object
+        if obj is not None:
+            if obj.animation_data is not None:  
+                if obj.animation_data.action is not None: 
+                    return True
     
     def execute(self, context):
         copy_keyframe(next = True)
