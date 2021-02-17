@@ -89,23 +89,4 @@ class WORKFLOW_PROP_Render(bpy.types.PropertyGroup):
         update = update_resolution,
         )
 
-class WORKFLOW_PROP_production_settings(bpy.types.PropertyGroup):
-    production: bpy.props.StringProperty(name="Production")
-    status: bpy.props.StringProperty(name="Status")
-    render_engine: bpy.props.StringProperty(name="Render Engine")
-    render_samples: bpy.props.IntProperty(name="Render Samples")
-    film_transparent: bpy.props.BoolProperty(name="Film")
-    resolution_x: bpy.props.IntProperty(name="Resolution X")
-    resolution_y: bpy.props.IntProperty(name="Resolution Y")
-    fps: bpy.props.IntProperty(name="Fps")
-    file_format: bpy.props.StringProperty(name="File Format")
-    color_mode: bpy.props.StringProperty(name="Color Mode")
-    color_depth: bpy.props.IntProperty(name="Color Depth")
-    exr_codec: bpy.props.StringProperty(name="Exr Codec")
-    png_compression: bpy.props.IntProperty(name="Png Compression")
-    overwrite: bpy.props.BoolProperty(name="Overwrite")
-    default_material_blend_method: bpy.props.StringProperty(name="Blend Mode")
-    render_output: bpy.props.StringProperty(name="Render Output", subtype="FILE_PATH")
-    preview_output: bpy.props.StringProperty(name="Preview Output", subtype="FILE_PATH")
-    render_material_path: bpy.props.StringProperty(name="Render Material Path", subtype="FILE_PATH")
 

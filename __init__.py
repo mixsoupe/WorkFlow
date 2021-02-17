@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 1, 3),
+    "version" : (1, 2, 0),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -97,20 +97,16 @@ classes = (
     WORKFLOW_Preferences,
     WORKFLOW_PROP_Palette,
     WORKFLOW_PROP_Render,
-    WORKFLOW_PROP_production_settings,
-    WORKFLOW_OT_Color,
-    WORKFLOW_PT_view3d_production,    
+    WORKFLOW_OT_Color,  
     WORKFLOW_PT_view3d_layout_tools,
     WORKFLOW_PT_view3d_animation_tools,
     WORKFLOW_PT_view3d_palette,   
     WORKFLOW_PT_node_editor_tools,
     WORKFLOW_PT_object_palette,
     WORKFLOW_PT_camera_render,
-    WORKFLOW_PT_import_anim,
     WORKFLOW_OT_delete_scenes,
     WORKFLOW_OT_render_material,
     WORKFLOW_OT_projection_node,
-    WORKFLOW_OT_load_settings,
     WORKFLOW_OT_playblast,
     WORKFLOW_OT_sync_visibility,
     WORKFLOW_OT_load_asset,
@@ -119,6 +115,8 @@ classes = (
     WORKFLOW_OT_import_keyframes,
     WORKFLOW_OT_apply_keyframes,
     WORKFLOW_OT_copy_material,
+    WORKFLOW_OT_copy_previous_keyframe,
+    WORKFLOW_OT_next_next_keyframe,
     )
 
 def register():
@@ -136,10 +134,7 @@ def register():
     
     if not hasattr( bpy.types.Scene, 'previous_camera'):
         bpy.types.Scene.previous_camera = bpy.props.StringProperty(name="Previous Camera")
-    
-    if not hasattr( bpy.types.Scene, 'production_settings'):
-        bpy.types.Scene.production_settings = bpy.props.PointerProperty(type=WORKFLOW_PROP_production_settings)
- 
+     
     if not hasattr( bpy.types.Scene, 'animation_filepath'):
         bpy.types.Scene.animation_filepath = bpy.props.StringProperty(name="Animation Filepath")
 
@@ -152,7 +147,6 @@ def unregister():
     del bpy.types.Object.Palette
     del bpy.types.Camera.render
     del bpy.types.Scene.previous_camera
-    del bpy.types.Scene.production_settings
     del bpy.types.Scene.animation_filepath
 
     bpy.app.handlers.depsgraph_update_post.remove(update_handler)

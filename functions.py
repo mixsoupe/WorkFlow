@@ -179,7 +179,7 @@ def render_material(shader_node_tree, render_camera, isolate, engine):
     bpy.context.scene.render.image_settings.color_mode = 'RGBA'
     bpy.context.scene.render.image_settings.color_depth = '8'
     bpy.context.scene.render.image_settings.compression = 0    
-    bpy.context.scene.render.filepath = bpy.context.scene.production_settings.render_material_path + material_name
+    bpy.context.scene.render.filepath = load_settings('render_material_path') + material_name
 
     #Render
     bpy.ops.render.render(write_still = 1)   
@@ -204,37 +204,19 @@ def render_material(shader_node_tree, render_camera, isolate, engine):
     
     return material_name
 
-def load_settings(production_settings_file):
+def load_settings(setting):
+    production_settings_file = bpy.context.preferences.addons['WorkFlow'].preferences.production_settings_file
+   
     filename =  bpy.path.basename(bpy.context.blend_data.filepath)
     filename = filename.rsplit(".", 1)[0]
-
-    settings = bpy.context.scene.production_settings
     
     #CONFIG PARSER
     config = configparser.ConfigParser()
     config.read(production_settings_file)
 
     #GET SETTINGS
-    settings.production = config.get('SETTINGS', 'production')
-    settings.status = "Loaded"
-    settings.render_engine = config.get('SETTINGS', 'render_engine')
-    settings.render_samples = config.getint('SETTINGS', 'render_samples')
-    settings.film_transparent = config.getboolean('SETTINGS', 'film_transparent')
-    settings.resolution_x = config.getint('SETTINGS', 'resolution_x')
-    settings.resolution_y = config.getint('SETTINGS', 'resolution_y')
-    settings.fps = config.getint('SETTINGS', 'fps')
-    settings.file_format = config.get('SETTINGS', 'file_format')
-    settings.color_mode = config.get('SETTINGS', 'color_mode')
-    settings.color_depth = config.getint('SETTINGS', 'color_depth')
-    settings.exr_codec = config.get('SETTINGS', 'exr_codec')
-    settings.png_compression = config.getint('SETTINGS', 'png_compression')
-    settings.overwrite = config.getboolean('SETTINGS', 'overwrite')
+    return eval(config.get('SETTINGS', setting))
 
-    settings.default_material_blend_method = config.get('SETTINGS', 'default_material_blend_method')
-
-    settings.render_output = eval(config.get('SETTINGS', 'render_output'))
-    settings.preview_output = eval(config.get('SETTINGS', 'preview_output'))
-    settings.render_material_path = eval(config.get('SETTINGS', 'render_material_path'))
 
 def playblast():  
     #Change Settings
@@ -250,7 +232,7 @@ def playblast():
 
     bpy.context.scene.render.film_transparent = False
 
-    bpy.context.scene.render.filepath = bpy.context.scene.production_settings.preview_output
+    bpy.context.scene.render.filepath = load_settings('preview_output')
 
     #Render
     bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
@@ -302,7 +284,28 @@ def load_asset(library_path, asset, link, active):
             else:
                 bpy.context.scene.collection.children.link(collection)
             
-            
+            #Overrides
+            if link:
+                for col in traverse_tree(collection):
+                    col.override_create(remap_local_usages=True)
+
+                    for obj in col.all_objects:
+                        obj.override_create(remap_local_usages=True)
+                
+                #change context and resync override
+                screen = bpy.context.screen
+                override = bpy.context.copy()
+
+                for area in screen.areas:
+                    if area.type == 'OUTLINER':
+                        for region in area.regions:
+                            if region.type == 'WINDOW':
+                                override = {'region': region, 'area': area, 'space_data': area.spaces[0], 'selected_ids':collection, 'collection': collection}
+                                #bpy.ops.outliner.id_operation(override, type='OVERRIDE_LIBRARY_RESYNC_HIERARCHY')
+                                break
+                
+                       
+
 
     if data_type in 'objects':
         for obj in data_to.objects:
@@ -310,6 +313,10 @@ def load_asset(library_path, asset, link, active):
                 bpy.context.collection.objects.link(obj)
             else:
                  bpy.context.scene.collection.objects.link(obj)
+
+            #Overrides
+            if link:
+                obj.override_create(remap_local_usages=True)
             
     return asset[0].name
 
@@ -513,3 +520,66 @@ def export_thumbnail(first_frame, last_frame, output_file):
                         if space.type == 'VIEW_3D':
                             space.overlay.show_overlays = overlays[i]
                             i += 1
+
+def copy_keyframe(previous = False, next = False, ):
+
+    frame_current = bpy.context.scene.frame_current    
+    obj = bpy.context.object
+
+    #Get selected bones
+    selected_bones = []
+    if bpy.context.mode == 'POSE':
+        for bone in obj.data.bones:
+            if bone.select:
+                selected_bones.append(bone.name)
+
+    if obj.animation_data.action is not None:           
+        for fcu in obj.animation_data.action.fcurves:
+
+            #Check if bone is selected
+            if selected_bones:
+                anim_bone_name = fcu.data_path.split('"')[1]
+                if anim_bone_name not in selected_bones:
+                    continue
+
+            #Get keyframe
+            frames = []
+            is_key = False
+            for keyframe in fcu.keyframe_points:
+                if previous:                
+                    if keyframe.co[0] < frame_current:
+                        is_key = True
+                        frames.append(keyframe.co[0])
+                    else:
+                        frames.append(1000000)
+
+                if next:                
+                    if keyframe.co[0] > frame_current:
+                        is_key = True
+                        frames.append(keyframe.co[0])
+                    else:
+                        frames.append(1000000)
+
+            if is_key:
+                frames = np.asarray(frames)
+                index = (np.abs(frames-frame_current)).argmin()   
+                
+                keyframe = fcu.keyframe_points[index]
+                frame_delta = frame_current - keyframe.co[0]
+
+                new_keyframe = fcu.keyframe_points.insert(frame_current, keyframe.co[1])    
+
+                new_keyframe.handle_left_type = keyframe.handle_left_type
+                new_keyframe.handle_right_type = keyframe.handle_right_type
+
+                new_keyframe.handle_left = (keyframe.handle_left[0]+frame_delta, keyframe.handle_left[1])            
+                new_keyframe.handle_right = (keyframe.handle_right[0]+frame_delta, keyframe.handle_right[1])  
+
+                new_keyframe.interpolation = keyframe.interpolation
+                new_keyframe.easing = keyframe.easing
+            
+
+
+
+
+    

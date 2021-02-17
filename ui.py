@@ -85,6 +85,8 @@ class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
         layout.operator("workflow.playblast")
         layout.operator("workflow.export_dummy", text="Export Keyframes")
         layout.operator("workflow.import_keyframes")
+        layout.operator("workflow.copy_previous_keyframe")
+        layout.operator("workflow.copy_next_keyframe")
 
 class WORKFLOW_PT_view3d_production(bpy.types.Panel):
     bl_label = "Production"

@@ -119,28 +119,6 @@ class WORKFLOW_OT_copy_material(bpy.types.Operator):
         obj.active_material = mat.copy()
 
         return {'FINISHED'}
-    
-
-class WORKFLOW_OT_load_settings(bpy.types.Operator):
-    
-    bl_idname = "workflow.load_settings"
-    bl_label = "Load Settings"
-
-    def execute(self, context):        
-        
-        
-        if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
-            load_settings(context.preferences.addons['WorkFlow'].preferences.production_settings_file)
-            self.report({'INFO'}, 'Production settings loaded')
-            return {'FINISHED'}
-        else:
-            self.report({'ERROR'}, 'Select a production settings file in addon preferences')
-            return {'CANCELLED'}
-            
-        """
-        load_settings('D:/LaForge/Yuku/02-ASSETS/ADDONS/yuku.ini')
-        return {'FINISHED'}
-        """
         
 class WORKFLOW_OT_render_material(bpy.types.Operator):
     
@@ -184,7 +162,7 @@ class WORKFLOW_OT_render_material(bpy.types.Operator):
 
 
     def invoke(self, context, event):
-        if bpy.context.scene.production_settings.preview_output != "":
+        if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
             wm = context.window_manager
             return wm.invoke_props_dialog(self)
         else:
@@ -198,7 +176,7 @@ class WORKFLOW_OT_playblast(bpy.types.Operator):
     bl_label = "Playblast"
 
     def execute(self, context):
-        if bpy.context.scene.production_settings.preview_output != "":
+        if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
             playblast()
             return {'FINISHED'}
         else:
@@ -230,7 +208,7 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
     link: bpy.props.BoolProperty( 
         name='Link', 
         description='Link the asset', 
-        default=False
+        default=True
         )
     active: bpy.props.BoolProperty( 
         name='Active Collection', 
@@ -238,7 +216,7 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
         default=True
         )
 
-    filepath = bpy.props.StringProperty(
+    filepath: bpy.props.StringProperty(
         name="File Path", 
         description="File path used for importing the OBJ file", 
         maxlen= 1024
@@ -272,7 +250,7 @@ class WORKFLOW_OT_export_keyframes(bpy.types.Operator, ExportHelper):
     bl_idname = "workflow.export_keyframes"
     bl_label = "Export Keyframes"
 
-    filepath = bpy.props.StringProperty(
+    filepath: bpy.props.StringProperty(
         name="File Path", 
         maxlen= 1024
         )
@@ -346,7 +324,7 @@ class WORKFLOW_OT_import_keyframes(bpy.types.Operator, ImportHelper):
     bl_idname = "workflow.import_keyframes"
     bl_label = "Import Keyframes"
 
-    filepath = bpy.props.StringProperty(
+    filepath: bpy.props.StringProperty(
         name="File Path",
         maxlen= 1024
         )
@@ -407,3 +385,26 @@ class WORKFLOW_OT_apply_keyframes(bpy.types.Operator):
         row = self.layout.row()
         if self.anim[-1][0] == self.anim[-1][1]:
             row.prop(self, "mix_factor")
+
+
+class WORKFLOW_OT_copy_previous_keyframe(bpy.types.Operator):
+    
+    bl_idname = "workflow.copy_previous_keyframe"
+    bl_label = "Copy Previous Keyframe"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        copy_keyframe(previous = True)
+
+        return {'FINISHED'}
+
+class WORKFLOW_OT_next_next_keyframe(bpy.types.Operator):
+    
+    bl_idname = "workflow.copy_next_keyframe"
+    bl_label = "Copy Next Keyframe"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+        copy_keyframe(next = True)
+
+        return {'FINISHED'}
