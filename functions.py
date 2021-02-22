@@ -180,6 +180,7 @@ def render_material(shader_node_tree, render_camera, isolate, engine):
     bpy.context.scene.render.image_settings.color_depth = '8'
     bpy.context.scene.render.image_settings.compression = 0    
     bpy.context.scene.render.filepath = load_settings('render_material_path') + material_name
+    scene.render.use_stamp = False
 
     #Render
     bpy.ops.render.render(write_still = 1)   
@@ -218,24 +219,67 @@ def load_settings(setting):
     return eval(config.get('SETTINGS', setting))
 
 
-def playblast():  
+def preview(filepath, publish = False):
+    scene = bpy.context.scene
+
     #Change Settings
-    bpy.context.scene.render.engine = "BLENDER_EEVEE"
-    bpy.context.scene.eevee.taa_render_samples = 64
-    bpy.context.scene.render.image_settings.file_format = "FFMPEG"
-    bpy.context.scene.render.image_settings.color_mode = "RGB"
-    bpy.context.scene.render.ffmpeg.format = "QUICKTIME"
-    bpy.context.scene.render.ffmpeg.codec = "H264"
-    bpy.context.scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
-    bpy.context.scene.render.ffmpeg.ffmpeg_preset = "GOOD"
-    bpy.context.scene.render.ffmpeg.audio_codec = "MP3"
+    scene.render.engine = "BLENDER_EEVEE"
+    scene.eevee.taa_render_samples = 64
+    scene.render.image_settings.file_format = "FFMPEG"
+    scene.render.image_settings.color_mode = "RGB"
+    scene.render.ffmpeg.format = "QUICKTIME"
+    scene.render.ffmpeg.codec = "H264"
+    scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
+    scene.render.ffmpeg.ffmpeg_preset = "GOOD"
+    scene.render.ffmpeg.audio_codec = "MP3"
 
-    bpy.context.scene.render.film_transparent = False
+    scene.render.film_transparent = False
 
-    bpy.context.scene.render.filepath = load_settings('preview_output')
+    scene.render.filepath = filepath
 
+    #Metadata
+    scene.render.use_stamp_date = False
+    scene.render.use_stamp_time = False
+    scene.render.use_stamp_render_time = False
+    scene.render.use_stamp_frame = True
+    scene.render.use_stamp_frame_range = False
+    scene.render.use_stamp_memory = False
+    scene.render.use_stamp_hostname = False
+    scene.render.use_stamp_camera = False
+    scene.render.use_stamp_lens = False
+    scene.render.use_stamp_scene = False
+    scene.render.use_stamp_marker = False
+    scene.render.use_stamp_filename = False
+    scene.render.use_stamp_note = True
+    scene.render.use_stamp = True
+    
+    
     #Render
-    bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
+    if publish:
+        filename =  bpy.path.basename(filepath)
+        filename = filename.rsplit(".", 1)[0]        
+        scene.render.stamp_note_text = filename
+        
+        bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
+
+        filepath = filepath.split('//')
+        dir_path = os.path.dirname(bpy.context.blend_data.filepath)
+        path = os.path.join(dir_path, filepath[1])
+        path = os.path.normpath(path)
+
+    else:
+        filename =  bpy.path.basename(bpy.context.blend_data.filepath)
+        filename = filename.rsplit(".", 1)[0]        
+        scene.render.stamp_note_text = filename
+
+        bpy.ops.render.opengl('INVOKE_DEFAULT', animation = True)
+
+        path = filepath
+    
+    #Open Folder
+    path = os.path.dirname(path)
+    os.startfile(path)
+
 
 def traverse_tree(t):
     yield t
@@ -279,33 +323,25 @@ def load_asset(library_path, asset, link, active):
     #Link to scene
     if data_type in 'collections':
         for collection in data_to.collections:
-            if active:
-                bpy.context.collection.children.link(collection)
-            else:
-                bpy.context.scene.collection.children.link(collection)
+            if not link:
+                if active:
+                    bpy.context.collection.children.link(collection)
+                else:
+                    bpy.context.scene.collection.children.link(collection)
             
             #Overrides
-            if link:
-                for col in traverse_tree(collection):
-                    col.override_create(remap_local_usages=True)
+            else:
+                empty = bpy.data.objects.new( "empty", None )
+                if active:
+                    bpy.context.collection.objects.link(empty)
+                else:
+                    bpy.context.scene.collection.objects.link(empty)
 
-                    for obj in col.all_objects:
-                        obj.override_create(remap_local_usages=True)
-                
-                #change context and resync override
-                screen = bpy.context.screen
-                override = bpy.context.copy()
+                empty.instance_type = "COLLECTION"
+                empty.instance_collection = collection
 
-                for area in screen.areas:
-                    if area.type == 'OUTLINER':
-                        for region in area.regions:
-                            if region.type == 'WINDOW':
-                                override = {'region': region, 'area': area, 'space_data': area.spaces[0], 'selected_ids':collection, 'collection': collection}
-                                #bpy.ops.outliner.id_operation(override, type='OVERRIDE_LIBRARY_RESYNC_HIERARCHY')
-                                break
-                
-                       
-
+                bpy.context.view_layer.objects.active = empty
+                bpy.ops.object.make_override_library(collection='DEFAULT')
 
     if data_type in 'objects':
         for obj in data_to.objects:
@@ -320,7 +356,7 @@ def load_asset(library_path, asset, link, active):
             
     return asset[0].name
 
-# chunk generator
+
 def chunk_iter(data):
     total_length = len(data)
     end = 4

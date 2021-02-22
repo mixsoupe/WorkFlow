@@ -170,18 +170,46 @@ class WORKFLOW_OT_render_material(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class WORKFLOW_OT_playblast(bpy.types.Operator):
+class WORKFLOW_OT_publish_preview(bpy.types.Operator):
     
-    bl_idname = "workflow.playblast"
-    bl_label = "Playblast"
+    bl_idname = "workflow.publish_preview"
+    bl_label = "Publish Preview"
 
     def execute(self, context):
         if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
-            playblast()
+            filepath = load_settings('preview_output')
+            preview(filepath, publish = True)
             return {'FINISHED'}
         else:
             self.report({'ERROR'}, 'Load Settings before Playblast')
             return {'CANCELLED'}
+
+class WORKFLOW_OT_fast_preview(bpy.types.Operator, ImportHelper):
+    
+    bl_idname = "workflow.fast_preview"
+    bl_label = "Fast Preview"
+    bl_options = {"REGISTER", "UNDO"}
+
+    filter_glob: bpy.props.StringProperty( 
+        default='*.mov', 
+        options={'HIDDEN'} 
+        )
+    filepath: bpy.props.StringProperty(
+        name="File Path", 
+        description="File path used for export playblast", 
+        maxlen= 1024
+        )
+
+    def execute(self, context):
+        preview(self.filepath, publish = False)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager.fileselect_add(self)
+        
+        return {'RUNNING_MODAL'}
+
+
 
 
 class WORKFLOW_OT_sync_visibility(bpy.types.Operator):

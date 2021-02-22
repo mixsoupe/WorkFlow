@@ -82,9 +82,12 @@ class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.operator("workflow.playblast")
+        layout.operator("workflow.fast_preview")
+        layout.operator("workflow.publish_preview")
+        layout.row().separator()
         layout.operator("workflow.export_dummy", text="Export Keyframes")
         layout.operator("workflow.import_keyframes")
+        layout.row().separator()
         layout.operator("workflow.copy_previous_keyframe")
         layout.operator("workflow.copy_next_keyframe")
 
