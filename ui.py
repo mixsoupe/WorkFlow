@@ -82,6 +82,12 @@ class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+
+        #Check for update
+        addon_updater_ops.check_for_update_background()
+        if addon_updater_ops.updater.update_ready == True:
+            layout.label(text = "New addon version available", icon="INFO")
+
         layout.operator("workflow.fast_preview")
         layout.operator("workflow.publish_preview")
         layout.row().separator()

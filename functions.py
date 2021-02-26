@@ -180,7 +180,7 @@ def render_material(shader_node_tree, render_camera, isolate, engine):
     bpy.context.scene.render.image_settings.color_depth = '8'
     bpy.context.scene.render.image_settings.compression = 0    
     bpy.context.scene.render.filepath = load_settings('render_material_path') + material_name
-    scene.render.use_stamp = False
+    bpy.context.scene.render.use_stamp = False
 
     #Render
     bpy.ops.render.render(write_still = 1)   
