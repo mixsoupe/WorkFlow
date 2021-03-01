@@ -480,3 +480,24 @@ class WORKFLOW_OT_next_next_keyframe(bpy.types.Operator):
         copy_keyframe(next = True)
 
         return {'FINISHED'}
+
+
+class WORKFLOW_OT_resync(bpy.types.Operator):
+    
+    bl_idname = "workflow.resync"
+    bl_label = "Resync Overrides"
+    bl_description = "Resync librairies overrides"
+    
+    def execute(self, context):
+        override = bpy.context.copy()
+        for area in bpy.context.screen.areas:
+            if area.type == 'OUTLINER':
+                override['area'] = area                
+                bpy.ops.outliner.select_all(override, action='SELECT')
+                bpy.ops.outliner.id_operation (override, type = 'OVERRIDE_LIBRARY_RESYNC_HIERARCHY')
+
+                return {'FINISHED'}
+        
+        self.report({'ERROR'}, "Outliner must be open")
+        return {'CANCELLED'}
+        

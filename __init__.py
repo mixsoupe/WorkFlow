@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 2, 5),
+    "version" : (1, 3, 0),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -92,6 +92,10 @@ class WORKFLOW_Preferences(bpy.types.AddonPreferences):
 def update_handler(dummy):
     resolution_from_camera()
 
+@persistent
+def load_handler(dummy):
+    bpy.ops.workflow.resync()
+
 #REGISTER UNREGISTER
 classes = (
     WORKFLOW_Preferences,
@@ -118,6 +122,7 @@ classes = (
     WORKFLOW_OT_copy_material,
     WORKFLOW_OT_copy_previous_keyframe,
     WORKFLOW_OT_next_next_keyframe,
+    WORKFLOW_OT_resync,
     )
 
 def register():
@@ -140,6 +145,8 @@ def register():
         bpy.types.Scene.animation_filepath = bpy.props.StringProperty(name="Animation Filepath")
 
     bpy.app.handlers.depsgraph_update_post.append(update_handler)
+    #bpy.app.handlers.load_post.append(load_handler)
+
 def unregister():
     from bpy.utils import unregister_class
     for cls in reversed(classes):
@@ -151,3 +158,4 @@ def unregister():
     del bpy.types.Scene.animation_filepath
 
     bpy.app.handlers.depsgraph_update_post.remove(update_handler)
+    #bpy.app.handlers.load_post.remove(load_handler)
