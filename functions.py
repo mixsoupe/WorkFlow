@@ -224,12 +224,11 @@ def preview(filepath, publish = False):
 
     #Change Settings
     scene.render.engine = "BLENDER_EEVEE"
-    scene.eevee.taa_render_samples = 64
     scene.render.image_settings.file_format = "FFMPEG"
     scene.render.image_settings.color_mode = "RGB"
     scene.render.ffmpeg.format = "QUICKTIME"
     scene.render.ffmpeg.codec = "H264"
-    scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
+    scene.render.ffmpeg.constant_rate_factor = "HIGH"
     scene.render.ffmpeg.ffmpeg_preset = "GOOD"
     scene.render.ffmpeg.audio_codec = "MP3"
 
@@ -252,15 +251,23 @@ def preview(filepath, publish = False):
     scene.render.use_stamp_filename = False
     scene.render.use_stamp_note = True
     scene.render.use_stamp = True
-    
-    
+
     #Render
     if publish:
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                    if area.type == 'VIEW_3D':
+                        for space in area.spaces:
+                            if space.type == 'VIEW_3D':
+                                space.overlay.show_overlays = False    
+                                space.shading.type = 'RENDERED'
+        bpy.context.space_data.region_3d.view_perspective = 'CAMERA'
+
         filename =  bpy.path.basename(filepath)
         filename = filename.rsplit(".", 1)[0]        
         scene.render.stamp_note_text = filename
         
-        bpy.ops.render.render('INVOKE_DEFAULT', animation = True)
+        bpy.ops.render.opengl('INVOKE_DEFAULT', animation = True)
 
         filepath = filepath.split('//')
         dir_path = os.path.dirname(bpy.context.blend_data.filepath)
@@ -273,12 +280,16 @@ def preview(filepath, publish = False):
         scene.render.stamp_note_text = filename
 
         bpy.ops.render.opengl('INVOKE_DEFAULT', animation = True)
+            
+
+
 
         path = filepath
     
     #Open Folder
     path = os.path.dirname(path)
     os.startfile(path)
+
 
 
 def traverse_tree(t):
@@ -290,8 +301,12 @@ def sync_visibility():
     #Get collection viewport visibility (from viewlayer)
     visibility = []
     master_collection = bpy.context.view_layer.layer_collection 
-    for collection in traverse_tree(master_collection):
-        visibility.append(collection.hide_viewport)
+    for collection in traverse_tree(master_collection):      
+        if collection.collection.hide_viewport:
+            visibility.append(True)
+        else:
+            visibility.append(collection.hide_viewport)
+
 
     #Set collection render visibility (from scene)
     master_collection = bpy.context.scene.collection    
@@ -300,7 +315,11 @@ def sync_visibility():
 
     #Set object render visibility
     for obj in bpy.context.scene.objects:
-        obj.hide_render = obj.hide_get()
+        if obj.hide_viewport:
+            obj.hide_render = True
+        else:
+            obj.hide_render = obj.hide_get()
+
 
 def load_asset(library_path, asset, link, active):
     config = configparser.ConfigParser()

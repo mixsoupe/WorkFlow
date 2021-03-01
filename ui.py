@@ -88,7 +88,7 @@ class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
         if addon_updater_ops.updater.update_ready == True:
             layout.label(text = "New addon version available", icon="INFO")
 
-        layout.operator("workflow.fast_preview")
+        layout.operator("workflow.custom_preview")
         layout.operator("workflow.publish_preview")
         layout.row().separator()
         layout.operator("workflow.export_dummy", text="Export Keyframes")

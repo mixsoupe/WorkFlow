@@ -28,6 +28,7 @@ class WORKFLOW_OT_Color(bpy.types.Operator):
     
     bl_idname = "workflow.color"
     bl_label = "Color Fill"
+    bl_description = "Color faces with selected color"
     bl_options = {"REGISTER", "UNDO"}
 
     options: bpy.props.EnumProperty(
@@ -72,6 +73,7 @@ class WORKFLOW_OT_projection_node(bpy.types.Operator):
     
     bl_idname = "workflow.projection_node"
     bl_label = "Create Projection Node"
+    bl_description = "Create projection node from camera"
     bl_options = {"REGISTER", "UNDO"}    
     
     options: bpy.props.EnumProperty(
@@ -102,6 +104,7 @@ class WORKFLOW_OT_copy_material(bpy.types.Operator):
     
     bl_idname = "workflow.copy_material"
     bl_label = "Copy Material"
+    bl_description = "Duplicate current material"
     bl_options = {"REGISTER", "UNDO"}
 
 
@@ -124,6 +127,7 @@ class WORKFLOW_OT_render_material(bpy.types.Operator):
     
     bl_idname = "workflow.render_material"
     bl_label = "Render Material"
+    bl_description = "Render material in selected camera view"
 
     camera: bpy.props.EnumProperty(
         name="Camera Select",
@@ -174,6 +178,7 @@ class WORKFLOW_OT_publish_preview(bpy.types.Operator):
     
     bl_idname = "workflow.publish_preview"
     bl_label = "Publish Preview"
+    bl_description = "Export preview with publish settings"
 
     def execute(self, context):
         if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
@@ -184,11 +189,11 @@ class WORKFLOW_OT_publish_preview(bpy.types.Operator):
             self.report({'ERROR'}, 'Load Settings before Playblast')
             return {'CANCELLED'}
 
-class WORKFLOW_OT_fast_preview(bpy.types.Operator, ImportHelper):
+class WORKFLOW_OT_custom_preview(bpy.types.Operator, ExportHelper):
     
-    bl_idname = "workflow.fast_preview"
-    bl_label = "Fast Preview"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_idname = "workflow.custom_preview"
+    bl_label = "Custom Preview"
+    bl_description = "Export preview with current settings and custom path"
 
     filter_glob: bpy.props.StringProperty( 
         default='*.mov', 
@@ -199,6 +204,8 @@ class WORKFLOW_OT_fast_preview(bpy.types.Operator, ImportHelper):
         description="File path used for export playblast", 
         maxlen= 1024
         )
+    
+    filename_ext = ".mov"
 
     def execute(self, context):
         preview(self.filepath, publish = False)
@@ -216,6 +223,7 @@ class WORKFLOW_OT_sync_visibility(bpy.types.Operator):
     
     bl_idname = "workflow.sync_visibility"
     bl_label = "Sync Visibility"
+    bl_description = "Synchronise render visibility with viewport visibility"
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
@@ -227,6 +235,7 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
     
     bl_idname = "workflow.load_asset"
     bl_label = "Load Asset"
+    bl_description = "Load asset from shortcut"
     bl_options = {"REGISTER", "UNDO"}
 
     filter_glob: bpy.props.StringProperty( 
@@ -277,6 +286,7 @@ class WORKFLOW_OT_export_keyframes(bpy.types.Operator, ExportHelper):
     
     bl_idname = "workflow.export_keyframes"
     bl_label = "Export Keyframes"
+    
 
     filepath: bpy.props.StringProperty(
         name="File Path", 
@@ -320,6 +330,7 @@ class WORKFLOW_OT_export_dummy(bpy.types.Operator):
     
     bl_idname = "workflow.export_dummy"
     bl_label = "dummy"
+    bl_description = "Export selected keyframes and take snapshot"
 
     @classmethod
     def poll(cls,context):
@@ -359,6 +370,7 @@ class WORKFLOW_OT_import_keyframes(bpy.types.Operator, ImportHelper):
     
     bl_idname = "workflow.import_keyframes"
     bl_label = "Import Keyframes"
+    bl_description = "Import and mix keyframes"
 
     filepath: bpy.props.StringProperty(
         name="File Path",
@@ -433,6 +445,7 @@ class WORKFLOW_OT_copy_previous_keyframe(bpy.types.Operator):
     
     bl_idname = "workflow.copy_previous_keyframe"
     bl_label = "Copy Previous Keyframe"
+    bl_description = "Copy/paste previous keyframe"
     bl_options = {"REGISTER", "UNDO"}
     
     @classmethod
@@ -452,6 +465,7 @@ class WORKFLOW_OT_next_next_keyframe(bpy.types.Operator):
     
     bl_idname = "workflow.copy_next_keyframe"
     bl_label = "Copy Next Keyframe"
+    bl_description = "Copy/paste next keyframe"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
