@@ -70,8 +70,10 @@ class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
         #layout.operator("workflow.delete_scenes")
         layout.operator("workflow.load_asset")
         layout.operator("workflow.import_audio")
+        layout.row().separator()
         layout.operator("workflow.render_material")
         layout.operator("workflow.sync_visibility")
+        layout.row().separator()
         layout.operator("workflow.resync")
 
 class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
