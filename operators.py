@@ -492,10 +492,10 @@ class WORKFLOW_OT_resync(bpy.types.Operator):
         override = bpy.context.copy()
         for area in bpy.context.screen.areas:
             if area.type == 'OUTLINER':
-                override['area'] = area                
-                bpy.ops.outliner.select_all(override, action='SELECT')
-                bpy.ops.outliner.id_operation (override, type = 'OVERRIDE_LIBRARY_RESYNC_HIERARCHY')
+                override['area'] = area
 
+                bpy.ops.outliner.id_operation (override, type = 'OVERRIDE_LIBRARY_RESYNC_HIERARCHY')                 
+                
                 return {'FINISHED'}
         
         self.report({'ERROR'}, "Outliner must be open")
