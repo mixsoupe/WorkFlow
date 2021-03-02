@@ -260,7 +260,14 @@ def preview(filepath, publish = False):
                         for space in area.spaces:
                             if space.type == 'VIEW_3D':
                                 space.overlay.show_overlays = False    
-                                space.shading.type = 'RENDERED'
+                                space.shading.type = 'MATERIAL'                                
+                    if area.type == 'DOPESHEET_EDITOR':                        
+                        for region in area.regions:
+                            if region.type == 'WINDOW':
+                                override = bpy.context.copy()                               
+                                override = {'region': region, 'area': area}
+                                bpy.ops.anim.previewrange_clear(override)
+
         bpy.context.space_data.region_3d.view_perspective = 'CAMERA'
 
         filename =  bpy.path.basename(filepath)
