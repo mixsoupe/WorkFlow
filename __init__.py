@@ -123,6 +123,7 @@ classes = (
     WORKFLOW_OT_copy_previous_keyframe,
     WORKFLOW_OT_next_next_keyframe,
     WORKFLOW_OT_resync,
+    WORKFLOW_OT_import_audio,
     )
 
 def register():

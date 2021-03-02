@@ -69,6 +69,7 @@ class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
         layout.use_property_split = True
         #layout.operator("workflow.delete_scenes")
         layout.operator("workflow.load_asset")
+        layout.operator("workflow.import_audio")
         layout.operator("workflow.render_material")
         layout.operator("workflow.sync_visibility")
         layout.operator("workflow.resync")

@@ -500,4 +500,36 @@ class WORKFLOW_OT_resync(bpy.types.Operator):
         
         self.report({'ERROR'}, "Outliner must be open")
         return {'CANCELLED'}
-        
+
+
+class WORKFLOW_OT_import_audio(bpy.types.Operator):
+    
+    bl_idname = "workflow.import_audio"
+    bl_label = "Import Audio"
+    bl_description = "Import audio and setup scene"
+    
+    def execute(self, context):
+        if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
+            scene = bpy.context.scene
+
+            if not scene.sequence_editor:
+                scene.sequence_editor_create()
+
+            for sequence in scene.sequence_editor.sequences:
+                    if sequence.type == 'SOUND':
+                        scene.sequence_editor.sequences.remove(sequence)
+
+            audio_file = load_settings('audio_file')
+            soundstrip = scene.sequence_editor.sequences.new_sound("audio", audio_file, 1, 1)
+
+            scene.frame_start = 1
+            scene.frame_end = soundstrip.frame_final_end
+
+            bpy.context.scene.use_audio_scrub = True
+            bpy.context.scene.sync_mode = 'AUDIO_SYNC'
+
+            return {'FINISHED'}
+
+        else:
+            self.report({'ERROR'}, 'Load Settings before import audio')
+            return {'CANCELLED'}
