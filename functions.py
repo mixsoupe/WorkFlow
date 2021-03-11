@@ -640,7 +640,34 @@ def copy_keyframe(previous = False, next = False, ):
 
                     new_keyframe.interpolation = keyframe.interpolation
                     new_keyframe.easing = keyframe.easing
-            
+
+def resync():
+    
+    #Get armature object collection
+    collection_list = []
+    master_collection = bpy.context.scene.collection 
+    for collection in traverse_tree(master_collection):
+        for obj in collection.objects:
+            if obj.type == "ARMATURE":
+                collection_list.append(collection.name)
+
+    
+    override = bpy.context.copy()
+    for area in bpy.context.screen.areas:
+        if area.type == 'OUTLINER':
+            override['area'] = area
+            for space in area.spaces:
+                if space.type == 'OUTLINER':
+                    space.display_mode = "VIEW_LAYER"                    
+                    space.use_filter_complete = True
+                    space.use_filter_object = False
+                    space.use_filter_collection = True
+
+                    for collection in collection_list:
+                        #space.filter_text = "mere"
+                        bpy.ops.outliner.select_all(override, action='SELECT')
+                        bpy.ops.outliner.id_operation (override, type = 'OVERRIDE_LIBRARY_RESYNC_HIERARCHY')                 
+                        
 
 
 
