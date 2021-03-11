@@ -57,6 +57,36 @@ class WORKFLOW_PT_view3d_palette(bpy.types.Panel):
         if bpy.context.mode == 'EDIT_MESH':
             layout.operator("workflow.color")
 
+class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
+    bl_label = "Asset"
+    bl_idname = "WORKFLOW_PT_view_3D_asset"
+    bl_space_type = "VIEW_3D"   
+    bl_region_type = "UI"
+    bl_category = "WorkFlow"
+    bl_options = {'DEFAULT_CLOSED'}
+        
+    @classmethod
+    def poll(cls,context):
+        obj = context.active_object
+        if obj is not None:
+            if obj.relink.uid != "":       
+                return True
+
+
+    def draw(self, context):
+        obj = context.active_object
+        layout = self.layout
+        layout.use_property_split = True
+        for item in context.scene.relink:            
+            if item.uid == obj.relink.uid:
+                layout.label(text = "NAME: " + item.name )
+                layout.label(text = "TYPE: " + item.data_type ) 
+                layout.label(text = "UID: " + item.uid ) 
+                layout.label(text = "PATH: " + item.path )   
+                layout.label(text = "VERSION: " + item.version )
+                layout.operator("workflow.update_asset")
+
+
 class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
     bl_label = "Layout Tools"
     bl_idname = "WORKFLOW_PT_view_3D_layout_tools"
@@ -67,7 +97,6 @@ class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        #layout.operator("workflow.delete_scenes")
         layout.operator("workflow.load_asset")
         layout.operator("workflow.import_audio")
         layout.row().separator()

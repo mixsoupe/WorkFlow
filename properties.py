@@ -99,6 +99,12 @@ class RELINK_PROP_Scene(bpy.types.PropertyGroup):
         )
     version: bpy.props.StringProperty(
         name="version",
+        )
+    data_type: bpy.props.StringProperty(
+        name="data_type",
+        )
+    name: bpy.props.StringProperty(
+        name="name",
         )      
     
 class RELINK_PROP_Data(bpy.types.PropertyGroup):

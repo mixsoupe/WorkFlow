@@ -103,10 +103,11 @@ classes = (
     WORKFLOW_PROP_Render,
     RELINK_PROP_Scene,
     RELINK_PROP_Data,
-    WORKFLOW_OT_Color, 
+    WORKFLOW_OT_Color,
+    WORKFLOW_PT_view3d_asset, 
     WORKFLOW_PT_view3d_layout_tools,
     WORKFLOW_PT_view3d_animation_tools,
-    WORKFLOW_PT_view3d_palette,   
+    WORKFLOW_PT_view3d_palette, 
     WORKFLOW_PT_node_editor_tools,
     WORKFLOW_PT_object_palette,
     WORKFLOW_PT_camera_render,
@@ -126,6 +127,7 @@ classes = (
     WORKFLOW_OT_next_next_keyframe,
     WORKFLOW_OT_resync,
     WORKFLOW_OT_import_audio,
+    WORKFLOW_OT_update_asset,
     )
 
 relink_types = ["Object", "Mesh", "Curve", "Light", "Camera", "MetaBall", "Collection", 

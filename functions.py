@@ -408,6 +408,8 @@ def load_asset(library_path, asset, link, active):
     mod_time = os.path.getmtime(full_path)
     date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
     new_item.version = date
+    new_item.data_type = data_type
+    new_item.name = name
 
     return asset[0].name
 

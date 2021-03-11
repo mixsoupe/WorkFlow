@@ -533,3 +533,17 @@ class WORKFLOW_OT_import_audio(bpy.types.Operator):
         else:
             self.report({'ERROR'}, 'Load Settings before import audio')
             return {'CANCELLED'}
+
+class WORKFLOW_OT_update_asset(bpy.types.Operator):
+    
+    bl_idname = "workflow.update_asset"
+    bl_label = "Update Asset"
+    bl_description = "Update Asset"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+
+        print ("Update")
+
+        self.report({'INFO'}, 'Asset updated')
+        return {'FINISHED'}
