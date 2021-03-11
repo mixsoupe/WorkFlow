@@ -101,6 +101,8 @@ classes = (
     WORKFLOW_Preferences,
     WORKFLOW_PROP_Palette,
     WORKFLOW_PROP_Render,
+    RELINK_PROP_Scene,
+    RELINK_PROP_Data,
     WORKFLOW_OT_Color, 
     WORKFLOW_PT_view3d_layout_tools,
     WORKFLOW_PT_view3d_animation_tools,
@@ -126,6 +128,9 @@ classes = (
     WORKFLOW_OT_import_audio,
     )
 
+relink_types = ["Object", "Mesh", "Curve", "Light", "Camera", "MetaBall", "Collection", 
+        "Text", "GreasePencil", "Material", "Lattice", "Armature", "Volume"]
+
 def register():
     addon_updater_ops.register(bl_info)
 
@@ -145,8 +150,15 @@ def register():
     if not hasattr( bpy.types.Scene, 'animation_filepath'):
         bpy.types.Scene.animation_filepath = bpy.props.StringProperty(name="Animation Filepath")
 
+    if not hasattr( bpy.types.Scene, 'relink'):
+        bpy.types.Scene.relink = bpy.props.CollectionProperty(type=RELINK_PROP_Scene)
+
+    for tp in relink_types:
+        data = getattr(bpy.types, tp)
+        if not hasattr(data, 'relink'):
+            data.relink = bpy.props.PointerProperty(type=RELINK_PROP_Data)
+
     bpy.app.handlers.depsgraph_update_post.append(update_handler)
-    #bpy.app.handlers.load_post.append(load_handler)
 
 def unregister():
     from bpy.utils import unregister_class
@@ -157,6 +169,11 @@ def unregister():
     del bpy.types.Camera.render
     del bpy.types.Scene.previous_camera
     del bpy.types.Scene.animation_filepath
+    del bpy.types.Scene.relink
+    for tp in relink_types:
+        data = getattr(bpy.types, tp)
+        del data.relink
+    
 
     bpy.app.handlers.depsgraph_update_post.remove(update_handler)
     #bpy.app.handlers.load_post.remove(load_handler)

@@ -24,6 +24,7 @@ import configparser
 import time
 import json
 import zipfile
+import uuid
 
 def color_fill(mask, mask_list):
     white = mathutils.Vector((1, 1, 1, 1))
@@ -329,24 +330,28 @@ def sync_visibility():
 
 
 def load_asset(library_path, asset, link, active):
+    uid = uuid.uuid1()
+
     config = configparser.ConfigParser()
     config.read(asset)
 
-    relative_path = config.get('ASSET', 'relative_path')
+    shortcut_path = config.get('ASSET', 'relative_path')
     data_type = config.get('ASSET', 'data_type')
     name = config.get('ASSET', 'name')
 
     #Make path
-    full_path = os.path.join(library_path, relative_path)
+    full_path = os.path.join(library_path, shortcut_path)
     full_path = os.path.normpath(full_path)
 
+    relative_path = bpy.path.relpath(full_path, start=None)
+    
     #Append/link
     with bpy.data.libraries.load(full_path, link=link) as (data_from, data_to):
 
         asset = [a for a in getattr(data_from, data_type) if a == name]
         setattr(data_to, data_type, asset)
     
-    #Link to scene
+    #Process collection
     if data_type in 'collections':
         for collection in data_to.collections:
             if not link:
@@ -354,6 +359,14 @@ def load_asset(library_path, asset, link, active):
                     bpy.context.collection.children.link(collection)
                 else:
                     bpy.context.scene.collection.children.link(collection)
+                
+                #Set uid
+                collection.relink.uid = str(uid)
+                for obj in collection.all_objects:
+                    obj.relink.uid = str(uid)
+                    for slot in obj.material_slots:
+                        mat = slot.material
+                        mat.relink.uid = str(uid)
             
             #Overrides
             else:
@@ -369,17 +382,33 @@ def load_asset(library_path, asset, link, active):
                 bpy.context.view_layer.objects.active = empty
                 bpy.ops.object.make_override_library(collection='DEFAULT')
 
+    #Process object
     if data_type in 'objects':
         for obj in data_to.objects:
             if active:
                 bpy.context.collection.objects.link(obj)
             else:
-                 bpy.context.scene.collection.objects.link(obj)
+                bpy.context.scene.collection.objects.link(obj)
+            
+            #Set uid
+            obj.relink.uid = str(uid)
+            for slot in obj.material_slots:
+                mat = slot.material
+                mat.relink.uid = str(uid)
 
             #Overrides
             if link:
                 obj.override_create(remap_local_usages=True)
-            
+
+    #Set Scene uid
+    scene = bpy.context.scene
+    new_item = scene.relink.add()
+    new_item.uid = str(uid)
+    new_item.path = relative_path    
+    mod_time = os.path.getmtime(full_path)
+    date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
+    new_item.version = date
+
     return asset[0].name
 
 

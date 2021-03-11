@@ -89,4 +89,20 @@ class WORKFLOW_PROP_Render(bpy.types.PropertyGroup):
         update = update_resolution,
         )
 
+class RELINK_PROP_Scene(bpy.types.PropertyGroup):
 
+    uid: bpy.props.StringProperty(
+        name="uid",
+        )
+    path: bpy.props.StringProperty(
+        name="path",
+        )
+    version: bpy.props.StringProperty(
+        name="version",
+        )      
+    
+class RELINK_PROP_Data(bpy.types.PropertyGroup):
+
+    uid: bpy.props.StringProperty(
+        name="uid",
+        )

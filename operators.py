@@ -245,7 +245,7 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
     link: bpy.props.BoolProperty( 
         name='Link', 
         description='Link the asset', 
-        default=True
+        default=False
         )
     active: bpy.props.BoolProperty( 
         name='Active Collection', 
