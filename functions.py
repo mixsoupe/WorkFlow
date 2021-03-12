@@ -305,6 +305,22 @@ def traverse_tree(t):
     for child in t.children:
         yield from traverse_tree(child)
 
+def parent_lookup(coll):
+    parent_lookup = {}
+    for coll in traverse_tree(coll):
+        for c in coll.children.keys():
+            parent_lookup.setdefault(c, coll.name)
+    return parent_lookup
+
+def recurLayerCollection(layerColl, collName):
+    found = None
+    if (layerColl.name == collName):
+        return layerColl
+    for layer in layerColl.children:
+        found = recurLayerCollection(layer, collName)
+        if found:
+            return found
+
 def sync_visibility():
     #Get collection viewport visibility (from viewlayer)
     visibility = []
@@ -329,8 +345,9 @@ def sync_visibility():
             obj.hide_render = obj.hide_get()
 
 
-def load_asset(library_path, asset, link, active):
-    uid = uuid.uuid1()
+
+def get_asset(library_path, asset):
+    
 
     config = configparser.ConfigParser()
     config.read(asset)
@@ -343,10 +360,13 @@ def load_asset(library_path, asset, link, active):
     full_path = os.path.join(library_path, shortcut_path)
     full_path = os.path.normpath(full_path)
 
-    relative_path = bpy.path.relpath(full_path, start=None)
+    return name, data_type, full_path
+
+def load_asset(name, data_type, path, link, active):
+    uid = uuid.uuid1()
     
     #Append/link
-    with bpy.data.libraries.load(full_path, link=link) as (data_from, data_to):
+    with bpy.data.libraries.load(path, link=link) as (data_from, data_to):
 
         asset = [a for a in getattr(data_from, data_type) if a == name]
         setattr(data_to, data_type, asset)
@@ -404,15 +424,14 @@ def load_asset(library_path, asset, link, active):
     scene = bpy.context.scene
     new_item = scene.relink.add()
     new_item.uid = str(uid)
-    new_item.path = relative_path    
-    mod_time = os.path.getmtime(full_path)
+    new_item.path = bpy.path.relpath(path, start=None)   
+    mod_time = os.path.getmtime(path)
     date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
     new_item.version = date
     new_item.data_type = data_type
     new_item.data_name = name
 
     return asset[0].name
-
 
 def chunk_iter(data):
     total_length = len(data)
@@ -701,8 +720,14 @@ def resync():
                         
 
 def relink():
+    #Get asset metadata
     uid = bpy.context.object.relink.uid 
-    
+    for item in bpy.context.scene.relink:
+        if item.uid == uid:
+            name = item.data_name
+            data_type = item.data_type
+            path = bpy.path.abspath(item.path)
+
     #Remove objects
     for obj in bpy.data.objects:
         if obj.relink.uid == uid:
@@ -729,9 +754,14 @@ def relink():
                 pass
 
     #Remove collections
+    coll_scene = bpy.context.scene.collection
+    coll_parents = parent_lookup(coll_scene)
+
     collection_delete = []
-    for collection in bpy.data.collections:
+    for collection in bpy.data.collections:        
         if collection.relink.uid == uid:
+            coll_parent = coll_parents.get(collection.name)
+            print (coll_parent)
             for child_collection in traverse_tree(collection):
                 collection_delete.append(child_collection)
                 
@@ -750,3 +780,10 @@ def relink():
     for index, item in enumerate(bpy.context.scene.relink):
         if item.uid == uid:
             bpy.context.scene.relink.remove(index)
+
+    #Reload
+    layer_collection = bpy.context.view_layer.layer_collection
+    layerColl = recurLayerCollection(layer_collection, coll_parent)
+    bpy.context.view_layer.active_layer_collection = layerColl
+
+    load_asset(name, data_type, path, False, True)
