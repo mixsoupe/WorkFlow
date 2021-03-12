@@ -409,7 +409,7 @@ def load_asset(library_path, asset, link, active):
     date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
     new_item.version = date
     new_item.data_type = data_type
-    new_item.name = name
+    new_item.data_name = name
 
     return asset[0].name
 
@@ -700,7 +700,53 @@ def resync():
                         bpy.ops.outliner.id_operation (override, type = 'OVERRIDE_LIBRARY_RESYNC_HIERARCHY')                 
                         
 
-
-
-
+def relink():
+    uid = bpy.context.object.relink.uid 
     
+    #Remove objects
+    for obj in bpy.data.objects:
+        if obj.relink.uid == uid:
+            if obj.data is not None:
+                try:
+                    bpy.data.meshes.remove(obj.data)
+                except:
+                    pass
+                try:
+                    bpy.data.armatures.remove(obj.data)
+                except:
+                    pass
+                try:
+                    bpy.data.curves.remove(obj.data)
+                except:
+                    pass
+                try:
+                    bpy.data.cameras.remove(obj.data)
+                except:
+                    pass
+            try:
+                bpy.data.objects.remove(obj)
+            except:
+                pass
+
+    #Remove collections
+    collection_delete = []
+    for collection in bpy.data.collections:
+        if collection.relink.uid == uid:
+            for child_collection in traverse_tree(collection):
+                collection_delete.append(child_collection)
+                
+    for collection in reversed(collection_delete):
+        bpy.data.collections.remove(collection)
+
+    #Remove materials
+    for material in bpy.data.materials:
+        if material.relink.uid == uid:
+            bpy.data.materials.remove(material)
+    
+    for i in range(10):
+        bpy.ops.outliner.orphans_purge()
+    
+    #Remove scene uid
+    for index, item in enumerate(bpy.context.scene.relink):
+        if item.uid == uid:
+            bpy.context.scene.relink.remove(index)

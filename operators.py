@@ -543,7 +543,7 @@ class WORKFLOW_OT_update_asset(bpy.types.Operator):
     
     def execute(self, context):
 
-        print ("Update")
+        relink()
 
         self.report({'INFO'}, 'Asset updated')
         return {'FINISHED'}

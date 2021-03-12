@@ -103,8 +103,8 @@ class RELINK_PROP_Scene(bpy.types.PropertyGroup):
     data_type: bpy.props.StringProperty(
         name="data_type",
         )
-    name: bpy.props.StringProperty(
-        name="name",
+    data_name: bpy.props.StringProperty(
+        name="data_name",
         )      
     
 class RELINK_PROP_Data(bpy.types.PropertyGroup):

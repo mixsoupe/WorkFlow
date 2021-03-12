@@ -79,8 +79,8 @@ class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
         layout.use_property_split = True
         for item in context.scene.relink:            
             if item.uid == obj.relink.uid:
-                layout.label(text = "NAME: " + item.name )
-                layout.label(text = "TYPE: " + item.data_type ) 
+                layout.label(text = "NAME: " + item.data_name )
+                #layout.label(text = "TYPE: " + item.data_type ) 
                 layout.label(text = "UID: " + item.uid ) 
                 layout.label(text = "PATH: " + item.path )   
                 layout.label(text = "VERSION: " + item.version )
