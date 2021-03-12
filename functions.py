@@ -381,7 +381,9 @@ def load_asset(name, data_type, path, link, active):
                     bpy.context.scene.collection.children.link(collection)
                 
                 #Set uid
-                collection.relink.uid = str(uid)
+                collection.relink.parent = True
+                for child_collection in traverse_tree(collection):
+                    child_collection.relink.uid = str(uid)                    
                 for obj in collection.all_objects:
                     obj.relink.uid = str(uid)
                     for slot in obj.material_slots:
@@ -759,14 +761,18 @@ def relink():
 
     collection_delete = []
     for collection in bpy.data.collections:        
-        if collection.relink.uid == uid:
+        if collection.relink.uid == uid and collection.relink.parent:
             coll_parent = coll_parents.get(collection.name)
             print (coll_parent)
             for child_collection in traverse_tree(collection):
                 collection_delete.append(child_collection)
-                
+
     for collection in reversed(collection_delete):
         bpy.data.collections.remove(collection)
+    
+    for collection in bpy.data.collections:        
+        if collection.relink.uid == uid:
+            bpy.data.collections.remove(collection)  
 
     #Remove materials
     for material in bpy.data.materials:
