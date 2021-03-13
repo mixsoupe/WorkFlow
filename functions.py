@@ -753,9 +753,14 @@ def relink():
             data_type = item.data_type
             path = bpy.path.abspath(item.path)
 
+
+    actions = {}
     #Remove objects
     for obj in bpy.data.objects:
         if obj.relink.uid == uid:
+            if obj.animation_data is not None:
+                if obj.animation_data.action is not None:
+                    actions[obj.name] = obj.animation_data.action
             if obj.data is not None:
                 data_types = ["meshes", "armatures", "curves", "cameras", "grease_pencils", 
                     "lights", "lattices", "lightprobes", "metaballs", "volumes"]
@@ -777,7 +782,6 @@ def relink():
     for collection in bpy.data.collections:        
         if collection.relink.uid == uid and collection.relink.master:
             coll_parent = coll_parents.get(collection.name)
-            print (coll_parent)
             for child_collection in traverse_tree(collection):
                 collection_delete.append(child_collection)
 
@@ -795,7 +799,7 @@ def relink():
     
     #Remove actions:
     for action in bpy.data.actions:
-        if action.relink.uid == uid:
+        if action.relink.uid == uid and action not in actions.values():
             bpy.data.actions.remove(action)
         
     #Remove images:
@@ -825,4 +829,10 @@ def relink():
     bpy.context.view_layer.active_layer_collection = layerColl
 
     load_asset(name, data_type, path, False, True)
+
+    #Remap Actions
+    for obj_name in actions.keys():
+        obj = bpy.data.objects[obj_name]
+        obj.animation_data.action = actions[obj_name]
+
     
