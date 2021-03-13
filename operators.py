@@ -269,8 +269,11 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
         folder = (os.path.dirname(self.filepath))
         for i in self.files:
             asset = (os.path.join(folder, i.name))
-            name, data_type, path = get_asset(folder, asset)      
-            result = load_asset(name, data_type, path, link, active)     
+            name, data_type, path = get_asset(folder, asset)
+            if link:
+                result = link_asset(name, data_type, path, active) 
+            else:
+                result, uid = append_asset(name, data_type, path, active)     
             self.report({'INFO'}, '{} successfully loaded'.format(result))
         return {'FINISHED'}
 

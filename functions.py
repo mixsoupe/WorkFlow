@@ -654,13 +654,58 @@ def resync():
                         #space.filter_text = "mere"
                         bpy.ops.outliner.select_all(override, action='SELECT')
                         bpy.ops.outliner.id_operation (override, type = 'OVERRIDE_LIBRARY_RESYNC_HIERARCHY')                 
-                        
 
-def load_asset(name, data_type, path, link, active):
+
+def link_asset(name, data_type, path, active):
+
+    with bpy.data.libraries.load(path, link=True) as (data_from, data_to):
+
+        asset = [a for a in getattr(data_from, data_type) if a == name]
+        setattr(data_to, data_type, asset)
+    
+    #Process collection
+    if data_type in 'collections':
+        for collection in data_to.collections:  
+            empty = bpy.data.objects.new( "empty", None )
+            if active:
+                bpy.context.collection.objects.link(empty)
+            else:
+                bpy.context.scene.collection.objects.link(empty)
+
+            empty.instance_type = "COLLECTION"
+            empty.instance_collection = collection
+
+            bpy.context.view_layer.objects.active = empty
+            bpy.ops.object.make_override_library(collection='DEFAULT')
+
+    #Process object
+    if data_type in 'objects':
+        for obj in data_to.objects:
+            if active:
+                bpy.context.collection.objects.link(obj)
+            else:
+                bpy.context.scene.collection.objects.link(obj)
+            obj.override_create(remap_local_usages=True)
+
+    return asset[0].name
+              
+
+def append_asset(name, data_type, path, active):
     uid = uuid.uuid1()
+    #Récupération des nom originaux grâce à un link, puis suppression de ce link
+    if data_type in 'collections':
+        with bpy.data.libraries.load(path, link=True) as (data_link_from, data_link_to):
+            data_link_to.collections = [c for c in data_link_from.collections if c == name]   
+    
+        for collection in data_link_to.collections:
+            if collection is not None:           
+                original_object = []
+                for obj in collection.all_objects:
+                    original_object.append(obj.name)            
+                bpy.data.libraries.remove(collection.library) 
     
     #Append/link
-    with bpy.data.libraries.load(path, link=link) as (data_from, data_to):
+    with bpy.data.libraries.load(path, link=False) as (data_from, data_to):
 
         asset = [a for a in getattr(data_from, data_type) if a == name]
         setattr(data_to, data_type, asset)
@@ -668,49 +713,35 @@ def load_asset(name, data_type, path, link, active):
     #Process collection
     if data_type in 'collections':
         for collection in data_to.collections:
-            if not link:
-                if active:
-                    bpy.context.collection.children.link(collection)
-                else:
-                    bpy.context.scene.collection.children.link(collection)
-                
-                #Set uid
-                collection.relink.master = True
-                for child_collection in traverse_tree(collection):
-                    child_collection.relink.uid = str(uid)                    
-                for obj in collection.all_objects:
-                    obj.relink.uid = str(uid)
-                    for slot in obj.material_slots:
-                        if slot.material is not None:
-                            mat = slot.material
-                            mat.relink.uid = str(uid)
-                            for node_tree in traverse_node_tree(mat.node_tree):
-                                node_tree.relink.uid = str(uid)
-                                for node in node_tree.nodes:
-                                    if node.bl_idname=="ShaderNodeTexImage":
-                                        if node.image is not None:
-                                            node.image.relink.uid = str(uid)                            
-
-                    if obj.animation_data is not None:
-                        if obj.animation_data.action is not None:
-                            obj.animation_data.action.relink.uid = str(uid)
-
-                    for particles in obj.particle_systems:
-                        particles.settings.relink.uid = str(uid)                
-            
-            #Overrides
+            if active:
+                bpy.context.collection.children.link(collection)
             else:
-                empty = bpy.data.objects.new( "empty", None )
-                if active:
-                    bpy.context.collection.objects.link(empty)
-                else:
-                    bpy.context.scene.collection.objects.link(empty)
+                bpy.context.scene.collection.children.link(collection)
+            
+            #Set uid
+            collection.relink.master = True
+            for child_collection in traverse_tree(collection):
+                child_collection.relink.uid = str(uid)                    
+            for i, obj in enumerate(collection.all_objects):
+                obj.relink.uid = str(uid)
+                obj.relink.original_name = original_object[i]
+                for slot in obj.material_slots:
+                    if slot.material is not None:
+                        mat = slot.material
+                        mat.relink.uid = str(uid)
+                        for node_tree in traverse_node_tree(mat.node_tree):
+                            node_tree.relink.uid = str(uid)
+                            for node in node_tree.nodes:
+                                if node.bl_idname=="ShaderNodeTexImage":
+                                    if node.image is not None:
+                                        node.image.relink.uid = str(uid)                            
 
-                empty.instance_type = "COLLECTION"
-                empty.instance_collection = collection
+                if obj.animation_data is not None:
+                    if obj.animation_data.action is not None:
+                        obj.animation_data.action.relink.uid = str(uid)
 
-                bpy.context.view_layer.objects.active = empty
-                bpy.ops.object.make_override_library(collection='DEFAULT')
+                for particles in obj.particle_systems:
+                    particles.settings.relink.uid = str(uid)                
 
     #Process object
     if data_type in 'objects':
@@ -725,10 +756,7 @@ def load_asset(name, data_type, path, link, active):
             for slot in obj.material_slots:
                 mat = slot.material
                 mat.relink.uid = str(uid)
-            """            
-            #Overrides
-            if link:
-                obj.override_create(remap_local_usages=True)
+            """
 
     #Set Scene uid
     scene = bpy.context.scene
@@ -741,7 +769,7 @@ def load_asset(name, data_type, path, link, active):
     new_item.data_type = data_type
     new_item.data_name = name
 
-    return asset[0].name
+    return asset[0].name, uid
 
 
 def relink():
@@ -760,7 +788,7 @@ def relink():
         if obj.relink.uid == uid:
             if obj.animation_data is not None:
                 if obj.animation_data.action is not None:
-                    actions[obj.name] = obj.animation_data.action
+                    actions[obj.relink.original_name] = obj.animation_data.action
             if obj.data is not None:
                 data_types = ["meshes", "armatures", "curves", "cameras", "grease_pencils", 
                     "lights", "lattices", "lightprobes", "metaballs", "volumes"]
@@ -828,11 +856,12 @@ def relink():
     layerColl = recurLayerCollection(layer_collection, coll_parent)
     bpy.context.view_layer.active_layer_collection = layerColl
 
-    load_asset(name, data_type, path, False, True)
+    result, new_uid = append_asset(name, data_type, path, True)
 
     #Remap Actions
-    for obj_name in actions.keys():
-        obj = bpy.data.objects[obj_name]
-        obj.animation_data.action = actions[obj_name]
+    for obj in bpy.data.objects:
+        if obj.relink.uid == str(new_uid):
+            if obj.relink.original_name in actions.keys():
+                obj.animation_data.action = actions[obj.relink.original_name]
 
     
