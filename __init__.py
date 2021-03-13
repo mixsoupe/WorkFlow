@@ -130,8 +130,7 @@ classes = (
     WORKFLOW_OT_update_asset,
     )
 
-relink_types = ["Object", "Mesh", "Curve", "Light", "Camera", "MetaBall", "Collection", 
-        "Text", "GreasePencil", "Material", "Lattice", "Armature", "Volume"]
+relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings"]
 
 def register():
     addon_updater_ops.register(bl_info)
@@ -154,7 +153,7 @@ def register():
 
     if not hasattr( bpy.types.Scene, 'relink'):
         bpy.types.Scene.relink = bpy.props.CollectionProperty(type=RELINK_PROP_Scene)
-
+    
     for tp in relink_types:
         data = getattr(bpy.types, tp)
         if not hasattr(data, 'relink'):

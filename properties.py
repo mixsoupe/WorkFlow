@@ -112,6 +112,6 @@ class RELINK_PROP_Data(bpy.types.PropertyGroup):
     uid: bpy.props.StringProperty(
         name="uid",
         )
-    parent: bpy.props.BoolProperty(
-        name="parent",
+    master: bpy.props.BoolProperty(
+        name="master",
         )

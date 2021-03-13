@@ -305,6 +305,13 @@ def traverse_tree(t):
     for child in t.children:
         yield from traverse_tree(child)
 
+def traverse_node_tree(note_tree):
+    yield note_tree
+    for node in note_tree.nodes:
+        if node.bl_idname =="ShaderNodeGroup":
+            if node.node_tree is not None:
+                yield from traverse_node_tree(node.node_tree)
+
 def parent_lookup(coll):
     parent_lookup = {}
     for coll in traverse_tree(coll):
@@ -362,78 +369,6 @@ def get_asset(library_path, asset):
 
     return name, data_type, full_path
 
-def load_asset(name, data_type, path, link, active):
-    uid = uuid.uuid1()
-    
-    #Append/link
-    with bpy.data.libraries.load(path, link=link) as (data_from, data_to):
-
-        asset = [a for a in getattr(data_from, data_type) if a == name]
-        setattr(data_to, data_type, asset)
-    
-    #Process collection
-    if data_type in 'collections':
-        for collection in data_to.collections:
-            if not link:
-                if active:
-                    bpy.context.collection.children.link(collection)
-                else:
-                    bpy.context.scene.collection.children.link(collection)
-                
-                #Set uid
-                collection.relink.parent = True
-                for child_collection in traverse_tree(collection):
-                    child_collection.relink.uid = str(uid)                    
-                for obj in collection.all_objects:
-                    obj.relink.uid = str(uid)
-                    for slot in obj.material_slots:
-                        mat = slot.material
-                        mat.relink.uid = str(uid)
-            
-            #Overrides
-            else:
-                empty = bpy.data.objects.new( "empty", None )
-                if active:
-                    bpy.context.collection.objects.link(empty)
-                else:
-                    bpy.context.scene.collection.objects.link(empty)
-
-                empty.instance_type = "COLLECTION"
-                empty.instance_collection = collection
-
-                bpy.context.view_layer.objects.active = empty
-                bpy.ops.object.make_override_library(collection='DEFAULT')
-
-    #Process object
-    if data_type in 'objects':
-        for obj in data_to.objects:
-            if active:
-                bpy.context.collection.objects.link(obj)
-            else:
-                bpy.context.scene.collection.objects.link(obj)
-            
-            #Set uid
-            obj.relink.uid = str(uid)
-            for slot in obj.material_slots:
-                mat = slot.material
-                mat.relink.uid = str(uid)
-
-            #Overrides
-            if link:
-                obj.override_create(remap_local_usages=True)
-
-    #Set Scene uid
-    scene = bpy.context.scene
-    new_item = scene.relink.add()
-    new_item.uid = str(uid)
-    new_item.path = bpy.path.relpath(path, start=None)   
-    mod_time = os.path.getmtime(path)
-    date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
-    new_item.version = date
-    new_item.data_type = data_type
-    new_item.data_name = name
-
-    return asset[0].name
 
 def chunk_iter(data):
     total_length = len(data)
@@ -721,6 +656,94 @@ def resync():
                         bpy.ops.outliner.id_operation (override, type = 'OVERRIDE_LIBRARY_RESYNC_HIERARCHY')                 
                         
 
+def load_asset(name, data_type, path, link, active):
+    uid = uuid.uuid1()
+    
+    #Append/link
+    with bpy.data.libraries.load(path, link=link) as (data_from, data_to):
+
+        asset = [a for a in getattr(data_from, data_type) if a == name]
+        setattr(data_to, data_type, asset)
+    
+    #Process collection
+    if data_type in 'collections':
+        for collection in data_to.collections:
+            if not link:
+                if active:
+                    bpy.context.collection.children.link(collection)
+                else:
+                    bpy.context.scene.collection.children.link(collection)
+                
+                #Set uid
+                collection.relink.master = True
+                for child_collection in traverse_tree(collection):
+                    child_collection.relink.uid = str(uid)                    
+                for obj in collection.all_objects:
+                    obj.relink.uid = str(uid)
+                    for slot in obj.material_slots:
+                        if slot.material is not None:
+                            mat = slot.material
+                            mat.relink.uid = str(uid)
+                            for node_tree in traverse_node_tree(mat.node_tree):
+                                node_tree.relink.uid = str(uid)
+                                for node in node_tree.nodes:
+                                    if node.bl_idname=="ShaderNodeTexImage":
+                                        if node.image is not None:
+                                            node.image.relink.uid = str(uid)                            
+
+                    if obj.animation_data is not None:
+                        if obj.animation_data.action is not None:
+                            obj.animation_data.action.relink.uid = str(uid)
+
+                    for particles in obj.particle_systems:
+                        particles.settings.relink.uid = str(uid)                
+            
+            #Overrides
+            else:
+                empty = bpy.data.objects.new( "empty", None )
+                if active:
+                    bpy.context.collection.objects.link(empty)
+                else:
+                    bpy.context.scene.collection.objects.link(empty)
+
+                empty.instance_type = "COLLECTION"
+                empty.instance_collection = collection
+
+                bpy.context.view_layer.objects.active = empty
+                bpy.ops.object.make_override_library(collection='DEFAULT')
+
+    #Process object
+    if data_type in 'objects':
+        for obj in data_to.objects:
+            if active:
+                bpy.context.collection.objects.link(obj)
+            else:
+                bpy.context.scene.collection.objects.link(obj)
+            """ Disable relink for single object
+            #Set uid
+            obj.relink.uid = str(uid)
+            for slot in obj.material_slots:
+                mat = slot.material
+                mat.relink.uid = str(uid)
+            """            
+            #Overrides
+            if link:
+                obj.override_create(remap_local_usages=True)
+
+    #Set Scene uid
+    scene = bpy.context.scene
+    new_item = scene.relink.add()
+    new_item.uid = str(uid)
+    new_item.path = bpy.path.relpath(path, start=None)   
+    mod_time = os.path.getmtime(path)
+    date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
+    new_item.version = date
+    new_item.data_type = data_type
+    new_item.data_name = name
+
+    return asset[0].name
+
+
 def relink():
     #Get asset metadata
     uid = bpy.context.object.relink.uid 
@@ -734,22 +757,13 @@ def relink():
     for obj in bpy.data.objects:
         if obj.relink.uid == uid:
             if obj.data is not None:
-                try:
-                    bpy.data.meshes.remove(obj.data)
-                except:
-                    pass
-                try:
-                    bpy.data.armatures.remove(obj.data)
-                except:
-                    pass
-                try:
-                    bpy.data.curves.remove(obj.data)
-                except:
-                    pass
-                try:
-                    bpy.data.cameras.remove(obj.data)
-                except:
-                    pass
+                data_types = ["meshes", "armatures", "curves", "cameras", "grease_pencils", 
+                    "lights", "lattices", "lightprobes", "metaballs", "volumes"]
+                for data in data_types:
+                    try:
+                        eval("bpy.data.{}.remove(obj.data)".format(data))
+                    except:
+                        pass                
             try:
                 bpy.data.objects.remove(obj)
             except:
@@ -761,7 +775,7 @@ def relink():
 
     collection_delete = []
     for collection in bpy.data.collections:        
-        if collection.relink.uid == uid and collection.relink.parent:
+        if collection.relink.uid == uid and collection.relink.master:
             coll_parent = coll_parents.get(collection.name)
             print (coll_parent)
             for child_collection in traverse_tree(collection):
@@ -779,17 +793,36 @@ def relink():
         if material.relink.uid == uid:
             bpy.data.materials.remove(material)
     
-    for i in range(10):
-        bpy.ops.outliner.orphans_purge()
+    #Remove actions:
+    for action in bpy.data.actions:
+        if action.relink.uid == uid:
+            bpy.data.actions.remove(action)
+        
+    #Remove images:
+    for image in bpy.data.images:
+        if image.relink.uid == uid:
+            bpy.data.images.remove(image)
     
+    #Remove nodes:
+    for node in bpy.data.node_groups:
+        if node.relink.uid == uid:
+            bpy.data.node_groups.remove(node)
+    
+    #Remove particle settings:
+    for particle in bpy.data.particles:
+        if particle.relink.uid == uid:
+            bpy.data.particles.remove(particle)
+
     #Remove scene uid
     for index, item in enumerate(bpy.context.scene.relink):
         if item.uid == uid:
             bpy.context.scene.relink.remove(index)
-
+    
     #Reload
+    
     layer_collection = bpy.context.view_layer.layer_collection
     layerColl = recurLayerCollection(layer_collection, coll_parent)
     bpy.context.view_layer.active_layer_collection = layerColl
 
     load_asset(name, data_type, path, False, True)
+    
