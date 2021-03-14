@@ -812,22 +812,13 @@ def relink():
             if obj.relink.metadata:
                 metadata = json.loads(obj.relink.metadata)
                 original_constraints = metadata["constraints"]
-            constraints_list = []
-            is_new = False
             for constraint in obj.constraints:
                 if constraint.name not in original_constraints:
-                    if constraint.type == "CHILD_OF":
-                        is_new = True
-                        constraint_dict = {}
-                        constraint_dict["name"] = constraint.name
-                        constraint_dict["target"] = constraint.target
-                        constraint_dict["subtarget"] = constraint.subtarget
-                        constraint_dict["inverse_matrix"] = constraint.inverse_matrix
-                        constraints_list.append(constraint_dict)                        
-                    else:
-                        return ("error", "Type de contrainte non pris en charge, demander à Paul de l'ajouter")
-            if is_new:
-                obj_constraints[obj.relink.original_name] = constraints_list    
+                    #Bake constraints on empty
+                    if bpy.data.objects.get(obj.name + str(uid)) is None:
+                        empty = bpy.data.objects.new(obj.name + str(uid), None )
+                    empty.constraints.copy(constraint)
+                    obj_constraints[obj.relink.original_name] = empty
 
             #Delete object data
             if obj.data is not None:
@@ -839,7 +830,7 @@ def relink():
                     except:
                         pass                
             try:
-                bpy.data.objects.remove(obj)
+                bpy.data.objects.remove(obj) #Pas forcément utile
             except:
                 pass
 
@@ -899,20 +890,18 @@ def relink():
 
     result, new_uid = append_asset(name, data_type, path, True)
 
-    #Remap actions
+    
     for obj in bpy.data.objects:
         if obj.relink.uid == str(new_uid):
+            #Remap actions
             if obj.relink.original_name in actions.keys():
                 obj.animation_data.action = actions[obj.relink.original_name]
 
-    #Remap constraints
-    for obj in bpy.data.objects:
-        if obj.relink.uid == str(new_uid):
+            #Remap constraints
             if obj.relink.original_name in obj_constraints.keys():
-                constraints_list = obj_constraints[obj.relink.original_name]
-                for constraint_dict in constraints_list:
-                    new_constraint = obj.constraints.new("CHILD_OF")
-                    new_constraint.name = constraint_dict["name"] 
-                    new_constraint.target = constraint_dict["target"]                    
-                    new_constraint.inverse_matrix = constraint_dict["inverse_matrix"]
-                    new_constraint.set_inverse_pending = True
+                empty = obj_constraints[obj.relink.original_name]
+                for constraint in empty.constraints:
+                    obj.constraints.copy(constraint)
+                bpy.data.objects.remove(empty)
+               
+                
