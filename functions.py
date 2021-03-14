@@ -741,7 +741,23 @@ def append_asset(name, data_type, path, active):
                         obj.animation_data.action.relink.uid = str(uid)
 
                 for particles in obj.particle_systems:
-                    particles.settings.relink.uid = str(uid)                
+                    particles.settings.relink.uid = str(uid)
+
+                #Tag constraints
+                if obj.type == "ARMATURE":
+                    for bone in obj.pose.bones:
+                        metadata = {}
+                        c_names = []
+                        for constraint in bone.constraints:
+                            c_names.append(constraint.name)
+                        metadata["constraints"] = c_names
+                        bone.relink.metadata = json.dumps(metadata)
+                metadata = {}
+                c_names = []
+                for constraint in obj.constraints:
+                    c_names.append(constraint.name)
+                metadata["constraints"] = c_names
+                obj.relink.metadata = json.dumps(metadata)
 
     #Process object
     if data_type in 'objects':

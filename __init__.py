@@ -130,7 +130,7 @@ classes = (
     WORKFLOW_OT_update_asset,
     )
 
-relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings"]
+relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]
 
 def register():
     addon_updater_ops.register(bl_info)

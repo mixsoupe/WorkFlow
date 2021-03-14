@@ -115,6 +115,11 @@ class RELINK_PROP_Data(bpy.types.PropertyGroup):
     original_name: bpy.props.StringProperty(
         name="original_name",
         )
-    master: bpy.props.BoolProperty(
+    master: bpy.props.BoolProperty(#Mettre Master et original name dans les metadatas
         name="master",
         )
+    metadata: bpy.props.StringProperty(
+        name="metadata",
+        )
+
+
