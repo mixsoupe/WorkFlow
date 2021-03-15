@@ -821,12 +821,16 @@ def relink():
         bpy.data.collections.remove(collection)
 
     #Remove datablocks
-    datablocks = ["collections", "materials", "node_groups", "images", "particles"]
+    datablocks = ["collections", "materials", "node_groups", "images"]
     for datablock in datablocks:
         datas = getattr(bpy.data, datablock)
         for data in datas:
             if data.relink.uid == uid:
                 datas.remove(data)
+
+    #Rename particle system
+    for particle in bpy.data.particles:
+        particle.name = particle.name + str(uid)                
    
     #Remove actions:
     for action in bpy.data.actions:
