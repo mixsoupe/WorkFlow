@@ -96,6 +96,7 @@ class RELINK_PROP_Scene(bpy.types.PropertyGroup):
         )
     path: bpy.props.StringProperty(
         name="path",
+        subtype="FILE_PATH",
         )
     version: bpy.props.StringProperty(
         name="version",

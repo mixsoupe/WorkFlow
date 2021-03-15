@@ -772,7 +772,10 @@ def append_asset(name, data_type, path, active):
     scene = bpy.context.scene
     new_item = scene.relink.add()
     new_item.uid = str(uid)
-    new_item.path = bpy.path.relpath(path, start=None)   
+    if bpy.data.is_saved:
+        new_item.path = bpy.path.relpath(path, start=None)
+    else:
+        new_item.path = path
     mod_time = os.path.getmtime(path)
     date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
     new_item.version = date
@@ -781,6 +784,12 @@ def append_asset(name, data_type, path, active):
 
     return asset[0].name, uid
 
+def check_asset(path, current_date):
+    path = bpy.path.abspath(path)
+    mod_time = os.path.getmtime(path)
+    date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
+    if date != current_date:
+        return True
 
 def relink():
     info = ("", "")

@@ -63,7 +63,7 @@ class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
     bl_space_type = "VIEW_3D"   
     bl_region_type = "UI"
     bl_category = "WorkFlow"
-    bl_options = {'DEFAULT_CLOSED'}
+    #bl_options = {'DEFAULT_CLOSED'}
         
     @classmethod
     def poll(cls,context):
@@ -76,15 +76,15 @@ class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
     def draw(self, context):
         obj = context.active_object
         layout = self.layout
-        layout.use_property_split = True
         for item in context.scene.relink:            
             if item.uid == obj.relink.uid:
-                layout.label(text = "NAME: " + item.data_name )
-                #layout.label(text = "TYPE: " + item.data_type ) 
-                layout.label(text = "UID: " + item.uid ) 
-                layout.label(text = "PATH: " + item.path )   
-                layout.label(text = "VERSION: " + item.version )
+                layout.label(text = item.data_name )
+                layout.label(text = item.uid ) 
+                layout.prop(item, "path", text="Path")   
+                layout.label(text = "VERSION: " + item.version)
                 layout.operator("workflow.update_asset")
+                if check_asset(item.path, item.version):
+                    layout.label(text = "NEW VERSION AVAILABLE", icon ="ERROR")
 
 
 class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
