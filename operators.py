@@ -547,7 +547,10 @@ class WORKFLOW_OT_update_asset(bpy.types.Operator):
     
     def execute(self, context):
 
-        relink()
+        status, message = relink()
 
-        self.report({'INFO'}, 'Asset updated')
+        if status == "warning":
+            self.report({'WARNING'}, message)
+        else:
+            self.report({'INFO'}, 'Asset updated')
         return {'FINISHED'}
