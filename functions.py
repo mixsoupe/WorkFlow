@@ -766,13 +766,7 @@ def append_asset(name, data_type, path, active):
                 bpy.context.collection.objects.link(obj)
             else:
                 bpy.context.scene.collection.objects.link(obj)
-            """ Disable relink for single object
-            #Set uid
-            obj.relink.uid = str(uid)
-            for slot in obj.material_slots:
-                mat = slot.material
-                mat.relink.uid = str(uid)
-            """
+
 
     #Set Scene uid
     scene = bpy.context.scene
@@ -789,6 +783,7 @@ def append_asset(name, data_type, path, active):
 
 
 def relink():
+    info = ("", "")
     #Get asset metadata
     uid = bpy.context.object.relink.uid 
     for item in bpy.context.scene.relink:
@@ -819,6 +814,13 @@ def relink():
                         empty = bpy.data.objects.new(obj.name + str(uid), None )
                     empty.constraints.copy(constraint)
                     obj_constraints[obj.relink.original_name] = empty
+            #Keep armature constraints
+            if obj.type == "ARMATURE":                
+                bake_obj = obj.copy()
+                bake_obj.name = obj.name + "armature" + str(uid)
+                bake_obj.data = obj.data.copy()
+                bake_obj.animation_data_clear()
+                bone_constraints[obj.relink.original_name] = bake_obj
 
             #Delete object data
             if obj.data is not None:
@@ -889,7 +891,6 @@ def relink():
     bpy.context.view_layer.active_layer_collection = layerColl
 
     result, new_uid = append_asset(name, data_type, path, True)
-
     
     for obj in bpy.data.objects:
         if obj.relink.uid == str(new_uid):
@@ -903,5 +904,23 @@ def relink():
                 for constraint in empty.constraints:
                     obj.constraints.copy(constraint)
                 bpy.data.objects.remove(empty)
+            
+            #Remap bones constraints
+            #Il faut faire un refactor avec user_remap
+            if obj.type == "ARMATURE":
+                bake_obj = bone_constraints[obj.relink.original_name]
+                for bone in bake_obj.pose.bones:
+                    metadata = json.loads(bone.relink.metadata)
+                    original_constraints = metadata["constraints"]
+                    for constraint in bone.constraints:
+                        if constraint.name not in original_constraints:
+                            try:
+                                obj.pose.bones[bone.name].constraints.copy(constraint)
+                            except:
+                                info =  ("warning", "Constraint update failed, armature mismatch")
+                                pass
+                bpy.data.objects.remove(bake_obj)
+    return info
+
                
                 
