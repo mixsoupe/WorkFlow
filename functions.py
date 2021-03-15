@@ -792,56 +792,19 @@ def relink():
             data_type = item.data_type
             path = bpy.path.abspath(item.path)
 
-
     actions = {}
-    obj_constraints = {}
-    bone_constraints = {}
-    #Remove objects
+    old_objects = {}    
     for obj in bpy.data.objects:
         if obj.relink.uid == uid:
             #Keep actions
             if obj.animation_data is not None:
                 if obj.animation_data.action is not None:
                     actions[obj.relink.original_name] = obj.animation_data.action
-            #Keep object constraints
-            if obj.relink.metadata:
-                metadata = json.loads(obj.relink.metadata)
-                original_constraints = metadata["constraints"]
-            for constraint in obj.constraints:
-                if constraint.name not in original_constraints:
-                    #Bake constraints on empty
-                    if bpy.data.objects.get(obj.name + str(uid)) is None:
-                        empty = bpy.data.objects.new(obj.name + str(uid), None )
-                    empty.constraints.copy(constraint)
-                    obj_constraints[obj.relink.original_name] = empty
-            #Keep armature constraints
-            if obj.type == "ARMATURE":
-                """               
-                bake_obj = obj.copy()                
-                bake_obj.name = obj.name + "armature" + str(uid)
-                bake_obj.data = obj.data.copy()
-                bake_obj.animation_data_clear()
-                """
-                
-                obj.name = obj.name + "armature" + str(uid)
-                obj.data.name = obj.data.name + "armature" + str(uid)
-                bone_constraints[obj.relink.original_name] = obj
-
-            """
-            #Delete object data
-            if obj.data is not None:
-                data_types = ["meshes", "armatures", "curves", "cameras", "grease_pencils", 
-                    "lights", "lattices", "lightprobes", "metaballs", "volumes"]
-                for data in data_types:
-                    try:
-                        eval("bpy.data.{}.remove(obj.data)".format(data))
-                    except:
-                        pass                
-            try:
-                bpy.data.objects.remove(obj) #Pas forcément utile
-            except:
-                pass
-            """
+            #Keep objects
+            obj.name = obj.name + str(uid)
+            if obj.data:
+                obj.data.name = obj.data.name + str(uid)
+            old_objects[obj.relink.original_name] = obj
 
     #Remove collections
     coll_scene = bpy.context.scene.collection
@@ -856,43 +819,26 @@ def relink():
 
     for collection in reversed(collection_delete):
         bpy.data.collections.remove(collection)
-    
-    for collection in bpy.data.collections:        
-        if collection.relink.uid == uid:
-            bpy.data.collections.remove(collection)  
 
-    #Remove materials
-    for material in bpy.data.materials:
-        if material.relink.uid == uid:
-            bpy.data.materials.remove(material)
-    
+    #Remove datablocks
+    datablocks = ["collections", "materials", "nodes", "images", "particles"]
+    for datablock in datablocks:
+        datas = getattr(bpy.data, datablock)
+        for data in datas:
+            if data.relink.uid == uid:
+                datas.remove(data)
+   
     #Remove actions:
     for action in bpy.data.actions:
         if action.relink.uid == uid and action not in actions.values():
             bpy.data.actions.remove(action)
-        
-    #Remove images:
-    for image in bpy.data.images:
-        if image.relink.uid == uid:
-            bpy.data.images.remove(image)
-    
-    #Remove nodes:
-    for node in bpy.data.node_groups:
-        if node.relink.uid == uid:
-            bpy.data.node_groups.remove(node)
-    
-    #Remove particle settings:
-    for particle in bpy.data.particles:
-        if particle.relink.uid == uid:
-            bpy.data.particles.remove(particle)
 
     #Remove scene uid
     for index, item in enumerate(bpy.context.scene.relink):
         if item.uid == uid:
             bpy.context.scene.relink.remove(index)
     
-    #Reload
-    
+    #Reload    
     layer_collection = bpy.context.view_layer.layer_collection
     layerColl = recurLayerCollection(layer_collection, coll_parent)
     bpy.context.view_layer.active_layer_collection = layerColl
@@ -906,27 +852,47 @@ def relink():
                 obj.animation_data.action = actions[obj.relink.original_name]
 
             #Remap constraints
-            if obj.relink.original_name in obj_constraints.keys():
-                empty = obj_constraints[obj.relink.original_name]
-                for constraint in empty.constraints:
-                    obj.constraints.copy(constraint)
-                bpy.data.objects.remove(empty)
-            
-            #Remap bones constraints
-            if obj.type == "ARMATURE":
-                bake_obj = bone_constraints[obj.relink.original_name]
-                bake_obj.user_remap(obj)
-                for bone in bake_obj.pose.bones:                    
-                    metadata = json.loads(bone.relink.metadata)
-                    original_constraints = metadata["constraints"]
-                    for constraint in bone.constraints:
-                        if constraint.name not in original_constraints:
-                            try:
-                                obj.pose.bones[bone.name].constraints.copy(constraint)
-                            except:
-                                info =  ("warning", "Constraint update failed, armature mismatch")
-                                pass
-                bpy.data.objects.remove(bake_obj)
+            if old_objects.get(obj.relink.original_name) is not None:      
+                old_obj = old_objects[obj.relink.original_name] #Risque de bug s'il y a plusieurs objets qui viennent du même asset
+                old_obj.user_remap(obj)                   
+                metadata = json.loads(old_obj.relink.metadata)
+                original_constraints = metadata["constraints"]
+                for constraint in old_obj.constraints:
+                    if constraint.name not in original_constraints:
+                        try:
+                            obj.constraints.copy(constraint)
+                        except:
+                            info =  ("warning", "Constraint update failed, hierarchy mismatch") #Pourquoi ?
+                            pass
+
+                if obj.type == "ARMATURE":
+                    for bone in old_obj.pose.bones:                    
+                        metadata = json.loads(bone.relink.metadata)
+                        original_constraints = metadata["constraints"]
+                        for constraint in bone.constraints:
+                            if constraint.name not in original_constraints:
+                                try:
+                                    obj.pose.bones[bone.name].constraints.copy(constraint)
+                                except:
+                                    info =  ("warning", "Constraint update failed, hierarchy mismatch")
+                                    pass
+
+    #Delete old objects
+    for old_obj in old_objects.values():    
+        #Delete object data
+        if old_obj.data is not None:
+            data_types = ["meshes", "armatures", "curves", "cameras", "grease_pencils", 
+                "lights", "lattices", "lightprobes", "metaballs", "volumes"]
+            for data in data_types:
+                try:
+                    eval("bpy.data.{}.remove(obj.data)".format(data))
+                except:
+                    pass 
+        try:
+            bpy.data.objects.remove(old_obj) #Pas forcément utile
+        except:
+            pass
+
     return info
 
                
