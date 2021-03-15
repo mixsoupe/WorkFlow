@@ -821,7 +821,7 @@ def relink():
         bpy.data.collections.remove(collection)
 
     #Remove datablocks
-    datablocks = ["collections", "materials", "nodes", "images", "particles"]
+    datablocks = ["collections", "materials", "node_groups", "images", "particles"]
     for datablock in datablocks:
         datas = getattr(bpy.data, datablock)
         for data in datas:
@@ -854,7 +854,7 @@ def relink():
             #Remap constraints
             if old_objects.get(obj.relink.original_name) is not None:      
                 old_obj = old_objects[obj.relink.original_name] #Risque de bug s'il y a plusieurs objets qui viennent du même asset
-                old_obj.user_remap(obj)                   
+                old_obj.user_remap(obj)
                 metadata = json.loads(old_obj.relink.metadata)
                 original_constraints = metadata["constraints"]
                 for constraint in old_obj.constraints:
