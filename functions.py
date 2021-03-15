@@ -815,13 +815,19 @@ def relink():
                     empty.constraints.copy(constraint)
                     obj_constraints[obj.relink.original_name] = empty
             #Keep armature constraints
-            if obj.type == "ARMATURE":                
-                bake_obj = obj.copy()
+            if obj.type == "ARMATURE":
+                """               
+                bake_obj = obj.copy()                
                 bake_obj.name = obj.name + "armature" + str(uid)
                 bake_obj.data = obj.data.copy()
                 bake_obj.animation_data_clear()
-                bone_constraints[obj.relink.original_name] = bake_obj
+                """
+                
+                obj.name = obj.name + "armature" + str(uid)
+                obj.data.name = obj.data.name + "armature" + str(uid)
+                bone_constraints[obj.relink.original_name] = obj
 
+            """
             #Delete object data
             if obj.data is not None:
                 data_types = ["meshes", "armatures", "curves", "cameras", "grease_pencils", 
@@ -835,6 +841,7 @@ def relink():
                 bpy.data.objects.remove(obj) #Pas forcément utile
             except:
                 pass
+            """
 
     #Remove collections
     coll_scene = bpy.context.scene.collection
@@ -906,10 +913,10 @@ def relink():
                 bpy.data.objects.remove(empty)
             
             #Remap bones constraints
-            #Il faut faire un refactor avec user_remap
             if obj.type == "ARMATURE":
                 bake_obj = bone_constraints[obj.relink.original_name]
-                for bone in bake_obj.pose.bones:
+                bake_obj.user_remap(obj)
+                for bone in bake_obj.pose.bones:                    
                     metadata = json.loads(bone.relink.metadata)
                     original_constraints = metadata["constraints"]
                     for constraint in bone.constraints:
