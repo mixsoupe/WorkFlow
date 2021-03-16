@@ -934,104 +934,50 @@ def relink(uid):
 
     return info
 
-def convert_asset_old():
+
+def convert_asset():    
     ids = bpy.context.selected_ids
-
-    for collection in ids:
-        uid = uuid.uuid1()
-
-        if collection.override_library is not None:  
-            path = collection.override_library.reference.library.filepath
-            name = collection.override_library.reference.name
-            data_type = "collections"
-            
-
-        collection.relink.master = True
-        for child_collection in traverse_tree(collection):
-            child_collection.relink.uid = str(uid)                
-        for i, obj in enumerate(collection.all_objects):   
-            obj.relink.uid = str(uid)
-            if obj.override_library is not None:                
-                obj.relink.original_name = obj.override_library.reference.name
-            for slot in obj.material_slots:
-                if slot.material is not None:
-                    mat = slot.material
-                    mat.relink.uid = str(uid)
-                    for node_tree in traverse_node_tree(mat.node_tree):
-                        node_tree.relink.uid = str(uid)
-                        for node in node_tree.nodes:
-                            if node.bl_idname=="ShaderNodeTexImage":
-                                if node.image is not None:
-                                    node.image.relink.uid = str(uid)                            
-
-            if obj.animation_data is not None:
-                if obj.animation_data.action is not None:
-                    obj.animation_data.action.relink.uid = str(uid)
-
-            for particles in obj.particle_systems:
-                particles.settings.relink.uid = str(uid)
-            
-            #Tag constraints
-            if obj.type == "ARMATURE":
-                for bone in obj.pose.bones:
-                    metadata = {}
-                    c_names = []
-                    for constraint in bone.constraints:
-                        c_names.append(constraint.name)
-                    metadata["constraints"] = c_names
-                    bone.relink.metadata = json.dumps(metadata)
-            metadata = {}
-            c_names = []
-            for constraint in obj.constraints:
-                c_names.append(constraint.name)
-            metadata["constraints"] = c_names
-            obj.relink.metadata = json.dumps(metadata)
-        
-        #Set Scene uid
-        scene = bpy.context.scene
-        new_item = scene.relink.add()
-        new_item.uid = str(uid)
-        new_item.path = path   
-        print (path)     
-        new_item.data_type = data_type
-        new_item.data_name = name
-
-        #relink(str(uid))
-        
+    collections = []
     
-
-def convert_asset():
-    ids = bpy.context.selected_ids
-
-    bake = {}
     for collection in ids:
+        
+        bake_transforms = {}
+        name = collection.name.split(".")[0]
+        path = collection.override_library.reference.library.filepath
+        path = bpy.path.abspath(path)
+        
+        coll_scene = bpy.context.scene.collection
+        coll_parents = parent_lookup(coll_scene)
+        coll_parent = coll_parents.get(collection.name)
+
         for obj in collection.all_objects:
             if "RIG" in obj.name: 
                 transform = {}
                 #KEEP transform
                 action = obj.animation_data.action 
                 if action is not None:
+                    action.use_fake_user = True
                     if action.fcurves.find("location") is None:
-                        location = obj.location
+                        location = obj.location[:]
                     else:
                         location = None
                     if action.fcurves.find("rotation_euler") is None:
-                        rotation_euler = obj.rotation_euler
+                        rotation_euler = (obj.rotation_euler[:], obj.rotation_mode)
                     else:
                         rotation_euler = None
                     if action.fcurves.find("rotation_quaternion") is None:
-                        rotation_quaternion = obj.rotation_quaternion
+                        rotation_quaternion = obj.rotation_quaternion[:]
                     else:
                         rotation_quaternion = None
                     if action.fcurves.find("scale") is None:
-                        scale = obj.scale
+                        scale = obj.scale[:]
                     else:
                         scale = None
                 else:
-                    location = obj.location
-                    rotation_euler = obj.rotation_euler       
-                    rotation_quaternion = obj.rotation_quaternion      
-                    scale = obj.scale
+                    location = obj.location[:]
+                    rotation_euler = (obj.rotation_euler[:], obj.rotation_mode)
+                    rotation_quaternion = obj.rotation_quaternion[:]   
+                    scale = obj.scale[:]                
                 
                 transform["action"] = action
                 transform["location"] = location
@@ -1039,12 +985,58 @@ def convert_asset():
                 transform["rotation_quaternion"] = rotation_quaternion
                 transform["scale"] = scale
 
-                bake[obj.name] = transform
+                shortname = obj.name.split(".0")[0]
+                bake_transforms[shortname] = transform            
+            bpy.data.objects.remove(obj)
+
+        data = {}
+        datas[name] = name
+        datas[path] = path
+        datas[coll_parent] = coll_parent
+        datas[bake_transforms] = bake_transforms
         
-        #DELETE
+
+        #Clean
         bpy.ops.outliner.delete(hierarchy=True)
+        override = bpy.context.copy()
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+                override['area'] = area
         for i in range(10):
-            bpy.ops.outliner.orphans_purge()
+            bpy.ops.outliner.orphans_purge(override)
+
+        
+        #Active parent collection
+              
+        layer_collection = bpy.context.view_layer.layer_collection
+        layerColl = recurLayerCollection(layer_collection, coll_parent)
+        bpy.context.view_layer.active_layer_collection = layerColl
+        
+        #Reload
+        result, new_uid = append_asset(name, "collections", path, True)
+        
+        #Remap transforms
+        for obj in bpy.data.objects:
+            if obj.relink.uid == str(new_uid):
+                shortname = obj.name.split(".0")[0]
+                
+                if shortname in bake_transforms.keys():                    
+                    transform = bake_transforms[shortname]
+
+                    if transform["action"] is not None:
+                        obj.animation_data.action = transform["action"]                    
+                    if transform["location"] is not None:
+                        obj.location = transform["location"]
+                    if transform["rotation_euler"] is not None:
+                        obj.rotation_euler = mathutils.Euler(transform["rotation_euler"][0], transform["rotation_euler"][1])
+                    if transform["rotation_quaternion"] is not None:
+                        obj.rotation_quaternion = transform["rotation_quaternion"]
+                    if transform["scale"] is not None:
+                        obj.scale = transform["scale"]
+                    
+
+        
+        
 
 
                 
