@@ -989,25 +989,31 @@ def convert_asset():
                 bake_transforms[shortname] = transform            
             bpy.data.objects.remove(obj)
 
-        data = {}
-        datas[name] = name
-        datas[path] = path
-        datas[coll_parent] = coll_parent
-        datas[bake_transforms] = bake_transforms
-        
+        datas = {}
+        datas["name"] = name
+        datas["path"] = path
+        datas["coll_parent"] = coll_parent
+        datas["bake_transforms"] = bake_transforms
 
-        #Clean
-        bpy.ops.outliner.delete(hierarchy=True)
-        override = bpy.context.copy()
-        for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
-                override['area'] = area
-        for i in range(10):
-            bpy.ops.outliner.orphans_purge(override)
+        collections.append(datas)
 
-        
-        #Active parent collection
-              
+    #Clean
+    bpy.ops.outliner.delete(hierarchy=True)
+    override = bpy.context.copy()
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            override['area'] = area
+    for i in range(10):
+        bpy.ops.outliner.orphans_purge(override)
+
+    #Append
+    for datas in collections:
+        name = datas["name"]
+        path = datas["path"]
+        coll_parent = datas["coll_parent"]
+        bake_transforms = datas["bake_transforms"]
+
+        #Active parent collection              
         layer_collection = bpy.context.view_layer.layer_collection
         layerColl = recurLayerCollection(layer_collection, coll_parent)
         bpy.context.view_layer.active_layer_collection = layerColl
