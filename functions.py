@@ -862,7 +862,7 @@ def relink():
         if obj.relink.uid == str(new_uid):
             #Remap actions
             if obj.relink.original_name in actions.keys():
-                obj.animation_data.action = actions[obj.relink.original_name]
+                obj.animation_data.action = actions[obj.relink.original_name]  
 
             #Remap constraints
             if old_objects.get(obj.relink.original_name) is not None:      
@@ -889,6 +889,29 @@ def relink():
                                 except:
                                     info =  ("warning", "Constraint update failed, hierarchy mismatch")
                                     pass
+                                
+                #Update transform for static objects
+                if obj.animation_data is not None:
+                    if obj.animation_data.action is not None:
+                        action = obj.animation_data.action
+                        if action.fcurves.find("location") is None:
+                            obj.location = old_obj.location
+                        if action.fcurves.find("rotation_euler") is None:
+                            obj.rotation_euler = old_obj.rotation_euler
+                        if action.fcurves.find("rotation_quaternion") is None:
+                            obj.rotation_quaternion = old_obj.rotation_quaternion
+                        if action.fcurves.find("scale") is None:
+                            obj.scale = old_obj.scale
+                    else:
+                        obj.location = old_obj.location
+                        obj.rotation_euler = old_obj.rotation_euler       
+                        obj.rotation_quaternion = old_obj.rotation_quaternion      
+                        obj.scale = old_obj.scale
+                else:
+                    obj.location = old_obj.location
+                    obj.rotation_euler = old_obj.rotation_euler       
+                    obj.rotation_quaternion = old_obj.rotation_quaternion      
+                    obj.scale = old_obj.scale
 
     #Delete old objects
     for old_obj in old_objects.values():    

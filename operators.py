@@ -239,8 +239,9 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
     bl_options = {"REGISTER", "UNDO"}
 
     filter_glob: bpy.props.StringProperty( 
-        default='*.ini', 
-        options={'HIDDEN'} 
+        default='*.ini',
+        #default='*.ini;*.blend',  
+        options={'HIDDEN'}
         )
     link: bpy.props.BoolProperty( 
         name='Link', 
@@ -260,6 +261,26 @@ class WORKFLOW_OT_load_asset(bpy.types.Operator, ImportHelper):
         )
 
     files: bpy.props.CollectionProperty(type=bpy.types.PropertyGroup)
+
+    """
+    def get_collections(self, context):
+        l = []
+        if os.path.exists(self.filepath) and self.filepath.endswith('.blend'):
+            with bpy.data.libraries.load(self.filepath) as (data_from, data_to):
+                collections = data_from.collections
+                for collection in collections:
+                    l.append((collection,collection,collection))
+        if len(l) == 0:
+            l = [("None","None","None")];
+
+        return l;
+
+    collections: bpy.props.EnumProperty(       
+        name = "Collections",
+        description = "List of collections in the .blend file",
+        items = get_collections
+        )
+    """
 
     def execute(self, context):
 
