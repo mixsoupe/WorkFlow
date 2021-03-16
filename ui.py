@@ -104,6 +104,7 @@ class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
         layout.operator("workflow.sync_visibility")
         layout.row().separator()
         layout.operator("workflow.resync")
+        layout.operator("workflow.convert_asset")
 
 class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
     bl_label = "Animation Tools"

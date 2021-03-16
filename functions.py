@@ -713,6 +713,7 @@ def append_asset(name, data_type, path, active):
     #Process collection
     if data_type in 'collections':
         for collection in data_to.collections:
+            
             if active:
                 bpy.context.collection.children.link(collection)
             else:
@@ -791,10 +792,9 @@ def check_asset(path, current_date):
     if date != current_date:
         return True
 
-def relink():
+def relink(uid):
     info = ("", "")
-    #Get asset metadata
-    uid = bpy.context.object.relink.uid 
+    #Get asset metadata    
     for item in bpy.context.scene.relink:
         if item.uid == uid:
             name = item.data_name
@@ -819,16 +819,19 @@ def relink():
     coll_scene = bpy.context.scene.collection
     coll_parents = parent_lookup(coll_scene)
 
+    
     collection_delete = []
     for collection in bpy.data.collections:        
         if collection.relink.uid == uid and collection.relink.master:
             coll_parent = coll_parents.get(collection.name)
+    
             for child_collection in traverse_tree(collection):
                 collection_delete.append(child_collection)
 
     for collection in reversed(collection_delete):
         bpy.data.collections.remove(collection)
-
+    
+    
     #Remove datablocks
     datablocks = ["collections", "materials", "node_groups", "images"]
     for datablock in datablocks:
@@ -930,6 +933,131 @@ def relink():
             pass
 
     return info
+
+def convert_asset_old():
+    ids = bpy.context.selected_ids
+
+    for collection in ids:
+        uid = uuid.uuid1()
+
+        if collection.override_library is not None:  
+            path = collection.override_library.reference.library.filepath
+            name = collection.override_library.reference.name
+            data_type = "collections"
+            
+
+        collection.relink.master = True
+        for child_collection in traverse_tree(collection):
+            child_collection.relink.uid = str(uid)                
+        for i, obj in enumerate(collection.all_objects):   
+            obj.relink.uid = str(uid)
+            if obj.override_library is not None:                
+                obj.relink.original_name = obj.override_library.reference.name
+            for slot in obj.material_slots:
+                if slot.material is not None:
+                    mat = slot.material
+                    mat.relink.uid = str(uid)
+                    for node_tree in traverse_node_tree(mat.node_tree):
+                        node_tree.relink.uid = str(uid)
+                        for node in node_tree.nodes:
+                            if node.bl_idname=="ShaderNodeTexImage":
+                                if node.image is not None:
+                                    node.image.relink.uid = str(uid)                            
+
+            if obj.animation_data is not None:
+                if obj.animation_data.action is not None:
+                    obj.animation_data.action.relink.uid = str(uid)
+
+            for particles in obj.particle_systems:
+                particles.settings.relink.uid = str(uid)
+            
+            #Tag constraints
+            if obj.type == "ARMATURE":
+                for bone in obj.pose.bones:
+                    metadata = {}
+                    c_names = []
+                    for constraint in bone.constraints:
+                        c_names.append(constraint.name)
+                    metadata["constraints"] = c_names
+                    bone.relink.metadata = json.dumps(metadata)
+            metadata = {}
+            c_names = []
+            for constraint in obj.constraints:
+                c_names.append(constraint.name)
+            metadata["constraints"] = c_names
+            obj.relink.metadata = json.dumps(metadata)
+        
+        #Set Scene uid
+        scene = bpy.context.scene
+        new_item = scene.relink.add()
+        new_item.uid = str(uid)
+        new_item.path = path   
+        print (path)     
+        new_item.data_type = data_type
+        new_item.data_name = name
+
+        #relink(str(uid))
+        
+    
+
+def convert_asset():
+    ids = bpy.context.selected_ids
+
+    bake = {}
+    for collection in ids:
+        for obj in collection.all_objects:
+            if "RIG" in obj.name: 
+                transform = {}
+                #KEEP transform
+                action = obj.animation_data.action 
+                if action is not None:
+                    if action.fcurves.find("location") is None:
+                        location = obj.location
+                    else:
+                        location = None
+                    if action.fcurves.find("rotation_euler") is None:
+                        rotation_euler = obj.rotation_euler
+                    else:
+                        rotation_euler = None
+                    if action.fcurves.find("rotation_quaternion") is None:
+                        rotation_quaternion = obj.rotation_quaternion
+                    else:
+                        rotation_quaternion = None
+                    if action.fcurves.find("scale") is None:
+                        scale = obj.scale
+                    else:
+                        scale = None
+                else:
+                    location = obj.location
+                    rotation_euler = obj.rotation_euler       
+                    rotation_quaternion = obj.rotation_quaternion      
+                    scale = obj.scale
+                
+                transform["action"] = action
+                transform["location"] = location
+                transform["rotation_euler"] = rotation_euler
+                transform["rotation_quaternion"] = rotation_quaternion
+                transform["scale"] = scale
+
+                bake[obj.name] = transform
+        
+        #DELETE
+        bpy.ops.outliner.delete(hierarchy=True)
+        for i in range(10):
+            bpy.ops.outliner.orphans_purge()
+
+
+                
+
+                
+
+
+
+
+
+
+
+
 
                
                 

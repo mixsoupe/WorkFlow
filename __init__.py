@@ -128,6 +128,7 @@ classes = (
     WORKFLOW_OT_resync,
     WORKFLOW_OT_import_audio,
     WORKFLOW_OT_update_asset,
+    WORKFLOW_OT_convert_asset,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]

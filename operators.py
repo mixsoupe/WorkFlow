@@ -567,11 +567,24 @@ class WORKFLOW_OT_update_asset(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
     
     def execute(self, context):
-
-        status, message = relink()
+        uid = bpy.context.object.relink.uid        
+        status, message = relink(uid)
 
         if status == "warning":
             self.report({'WARNING'}, message)
         else:
             self.report({'INFO'}, 'Asset updated')
         return {'FINISHED'}
+
+class WORKFLOW_OT_convert_asset(bpy.types.Operator):
+    
+    bl_idname = "workflow.convert_asset"
+    bl_label = "Convert Asset"
+    bl_description = "Convert Asset"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+
+        convert_asset()
+        return {'FINISHED'}
+
