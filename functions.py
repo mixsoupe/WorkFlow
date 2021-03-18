@@ -951,9 +951,10 @@ def convert_asset():
         coll_parent = coll_parents.get(collection.name)
 
         for obj in collection.all_objects:
-            if "RIG" in obj.name: 
+            if "rig." in obj.name.lower(): 
                 transform = {}
                 #KEEP transform
+                print (obj.name)
                 action = obj.animation_data.action 
                 if action is not None:
                     action.use_fake_user = True
