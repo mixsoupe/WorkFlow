@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 4, 3),
+    "version" : (1, 4, 4),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -129,6 +129,8 @@ classes = (
     WORKFLOW_OT_import_audio,
     WORKFLOW_OT_update_asset,
     WORKFLOW_OT_convert_asset,
+    WORKFLOW_OT_reload_images,
+    WORKFLOW_OT_load_image,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]

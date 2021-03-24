@@ -208,7 +208,7 @@ def render_material(shader_node_tree, render_camera, isolate, engine):
 
 def load_settings(setting):
     production_settings_file = bpy.context.preferences.addons['WorkFlow'].preferences.production_settings_file
-   
+    
     filename =  bpy.path.basename(bpy.context.blend_data.filepath)
     filename = filename.rsplit(".", 1)[0]
     

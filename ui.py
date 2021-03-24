@@ -216,6 +216,8 @@ class WORKFLOW_PT_node_editor_tools(bpy.types.Panel):
         layout.operator("workflow.copy_material")
         layout.operator("workflow.projection_node")
         layout.operator("workflow.render_material")
+        layout.operator("workflow.load_image")
+        layout.operator("workflow.reload_images")
 
 
 #FILE BROWSER PANEL

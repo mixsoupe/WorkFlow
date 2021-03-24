@@ -588,3 +588,43 @@ class WORKFLOW_OT_convert_asset(bpy.types.Operator):
         convert_asset()
         return {'FINISHED'}
 
+class WORKFLOW_OT_reload_images(bpy.types.Operator):
+    
+    bl_idname = "workflow.reload_images"
+    bl_label = "Reload Images"
+    bl_description = "Reload Images"
+    
+    def execute(self, context):
+        for img in bpy.data.images :
+            if img.source == 'FILE' :
+                img.reload()
+        return {'FINISHED'}
+
+class WORKFLOW_OT_load_image(bpy.types.Operator):
+    
+    bl_idname = "workflow.load_image"
+    bl_label = "Load Image"
+    bl_description = "Load Image"
+
+    @classmethod
+    def poll(cls,context):
+        node = context.active_node
+        if node is None:
+            return False
+        return node.bl_idname == 'ShaderNodeTexImage'
+    
+    def execute(self, context):
+        if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
+            material_name = bpy.context.active_object.active_material.name            
+            filepath = load_settings('render_material_path') + material_name + '.png'   
+            try:         
+                image = bpy.data.images.load(filepath, check_existing=True)
+                context.active_node.image = image
+            except:
+                self.report({'ERROR'}, 'No image found')
+                return {'CANCELLED'}
+
+            return {'FINISHED'}
+        else:
+            self.report({'ERROR'}, 'Load Settings before load image')
+            return {'CANCELLED'}
