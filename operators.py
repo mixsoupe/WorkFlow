@@ -548,7 +548,7 @@ class WORKFLOW_OT_import_audio(bpy.types.Operator):
             soundstrip = scene.sequence_editor.sequences.new_sound("audio", audio_file, 1, 1)
 
             scene.frame_start = 1
-            scene.frame_end = soundstrip.frame_final_end
+            scene.frame_end = soundstrip.frame_final_duration
 
             bpy.context.scene.use_audio_scrub = True
             bpy.context.scene.sync_mode = 'AUDIO_SYNC'
