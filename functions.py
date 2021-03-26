@@ -255,6 +255,15 @@ def preview(filepath, publish = False):
 
     #Render
     if publish:
+        # Check range
+        sound_count = 0
+        for sequence in scene.sequence_editor.sequences:            
+            if sequence.type == 'SOUND':
+                sound_count += 1
+        if sound_count == 1:
+            scene.frame_start = 1
+            scene.frame_end = sequence.frame_final_end  
+
         for screen in bpy.data.screens:
             for area in screen.areas:
                     if area.type == 'VIEW_3D':
