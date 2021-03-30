@@ -960,43 +960,44 @@ def convert_asset():
         coll_parent = coll_parents.get(collection.name)
 
         for obj in collection.all_objects:
-            if "rig." in obj.name.lower(): 
-                transform = {}
-                #KEEP transform
-                print (obj.name)
-                action = obj.animation_data.action 
-                if action is not None:
-                    action.use_fake_user = True
-                    if action.fcurves.find("location") is None:
+            if "rig." in obj.name.lower():
+                if obj.type == "ARMATURE":
+                    transform = {}
+                    #KEEP transform
+                    print (obj.name)
+                    action = obj.animation_data.action 
+                    if action is not None:
+                        action.use_fake_user = True
+                        if action.fcurves.find("location") is None:
+                            location = obj.location[:]
+                        else:
+                            location = None
+                        if action.fcurves.find("rotation_euler") is None:
+                            rotation_euler = (obj.rotation_euler[:], obj.rotation_mode)
+                        else:
+                            rotation_euler = None
+                        if action.fcurves.find("rotation_quaternion") is None:
+                            rotation_quaternion = obj.rotation_quaternion[:]
+                        else:
+                            rotation_quaternion = None
+                        if action.fcurves.find("scale") is None:
+                            scale = obj.scale[:]
+                        else:
+                            scale = None
+                    else:
                         location = obj.location[:]
-                    else:
-                        location = None
-                    if action.fcurves.find("rotation_euler") is None:
                         rotation_euler = (obj.rotation_euler[:], obj.rotation_mode)
-                    else:
-                        rotation_euler = None
-                    if action.fcurves.find("rotation_quaternion") is None:
-                        rotation_quaternion = obj.rotation_quaternion[:]
-                    else:
-                        rotation_quaternion = None
-                    if action.fcurves.find("scale") is None:
-                        scale = obj.scale[:]
-                    else:
-                        scale = None
-                else:
-                    location = obj.location[:]
-                    rotation_euler = (obj.rotation_euler[:], obj.rotation_mode)
-                    rotation_quaternion = obj.rotation_quaternion[:]   
-                    scale = obj.scale[:]                
-                
-                transform["action"] = action
-                transform["location"] = location
-                transform["rotation_euler"] = rotation_euler
-                transform["rotation_quaternion"] = rotation_quaternion
-                transform["scale"] = scale
+                        rotation_quaternion = obj.rotation_quaternion[:]   
+                        scale = obj.scale[:]                
+                    
+                    transform["action"] = action
+                    transform["location"] = location
+                    transform["rotation_euler"] = rotation_euler
+                    transform["rotation_quaternion"] = rotation_quaternion
+                    transform["scale"] = scale
 
-                shortname = obj.name.split(".0")[0]
-                bake_transforms[shortname] = transform            
+                    shortname = obj.name.split(".0")[0]
+                    bake_transforms[shortname] = transform            
             bpy.data.objects.remove(obj)
 
         datas = {}
