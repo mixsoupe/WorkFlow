@@ -262,7 +262,7 @@ def preview(filepath, publish = False):
                 sound_count += 1
         if sound_count == 1:
             scene.frame_start = 1
-            scene.frame_end = soundstrip.frame_final_duration
+            scene.frame_end = sequence.frame_final_duration
 
         for screen in bpy.data.screens:
             for area in screen.areas:
