@@ -1053,7 +1053,13 @@ def convert_asset():
                     
 
         
-        
+def delete_hidden():
+    ids = bpy.context.selected_ids
+    print (ids)
+    for collection in ids:
+        for obj in collection.all_objects:
+            if obj.hide_viewport or obj.hide_get():
+                bpy.data.objects.remove(obj)
 
 
                 
