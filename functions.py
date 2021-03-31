@@ -1054,14 +1054,33 @@ def convert_asset():
 
         
 def delete_hidden():
-    ids = bpy.context.selected_ids
-    print (ids)
+    #Get collection visibility
+    collection_hide = []
+    master_collection = bpy.context.view_layer.layer_collection 
+    for collection in traverse_tree(master_collection):      
+        if collection.collection.hide_viewport or collection.exclude or collection.hide_viewport:
+            collection_hide.append(collection.collection)
+
+    print (collection_hide)
+
+    #Delete objects and collections    
+    ids = bpy.context.selected_ids  
     for collection in ids:
         for obj in collection.all_objects:
             if obj.hide_viewport or obj.hide_get():
                 bpy.data.objects.remove(obj)
 
+        collection_to_delete= []        
+        for child_collection in traverse_tree(collection):
+            if child_collection in collection_hide:
+                collection_to_delete.append(child_collection)
+        
+        for c in reversed(collection_to_delete):
+            bpy.data.collections.remove(c)
 
+    
+
+    
                 
 
                 
