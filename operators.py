@@ -628,3 +628,30 @@ class WORKFLOW_OT_load_image(bpy.types.Operator):
         else:
             self.report({'ERROR'}, 'Load Settings before load image')
             return {'CANCELLED'}
+            
+
+class WORKFLOW_OT_delete_hidden(bpy.types.Operator):
+    
+    bl_idname = "workflow.delete_hidden"
+    bl_label = "Delete Hidden"
+    bl_description = "Delete Hidden"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+        delete_hidden()
+        return {'FINISHED'}
+
+
+class WORKFLOW_OT_clean_up(bpy.types.Operator):
+    
+    bl_idname = "workflow.clean_up"
+    bl_label = "Clean Up"
+    bl_description = "Clean up unused datablocks"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+        for i in range(10):
+            bpy.ops.outliner.orphans_purge()
+        return {'FINISHED'}
+
+
