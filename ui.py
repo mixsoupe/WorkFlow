@@ -83,7 +83,7 @@ class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
                 layout.prop(item, "path", text="Path")   
                 layout.label(text = "VERSION: " + item.version)
                 layout.operator("workflow.update_asset")
-                if check_asset(item.path, item.version):
+                if check_asset(item.path, item.version):                    
                     layout.label(text = "NEW VERSION AVAILABLE", icon ="ERROR")
 
 

@@ -654,4 +654,33 @@ class WORKFLOW_OT_clean_up(bpy.types.Operator):
             bpy.ops.outliner.orphans_purge()
         return {'FINISHED'}
 
+class WORKFLOW_OT_info(bpy.types.Operator):
+    bl_idname = "workflow.info"
+    bl_label = "INFO"
+
+    first_mouse_x : bpy.props.IntProperty(default = 0)
+    first_mouse_y : bpy.props.IntProperty(default = 0)
+
+    mouse_snap : bpy.props.BoolProperty(default = False)
+
+    message : bpy.props.StringProperty(name="")
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def draw(self, context):        
+        self.layout.label(text = self.message, icon="INFO")
+        if not self.mouse_snap:
+            self.mouse_snap = True            
+            context.window.cursor_warp(self.first_mouse_x, self.first_mouse_y)
+
+    def invoke(self, context, event):
+        self.first_mouse_x = event.mouse_x
+        self.first_mouse_y = event.mouse_y
+        self.mouse_snap = False
+
+        context.window.cursor_warp(context.window.width/2, (context.window.height/2))
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
 

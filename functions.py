@@ -794,13 +794,6 @@ def append_asset(name, data_type, path, active):
 
     return asset[0].name, uid
 
-def check_asset(path, current_date):
-    path = bpy.path.abspath(path)
-    mod_time = os.path.getmtime(path)
-    date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
-    if date != current_date:
-        return True
-
 def relink(uid):
     info = ("", "")
     #Get asset metadata    
@@ -1077,6 +1070,29 @@ def delete_hidden():
         
         for c in reversed(collection_to_delete):
             bpy.data.collections.remove(c)
+
+def check_asset(path, current_date):
+    path = bpy.path.abspath(path)
+    mod_time = os.path.getmtime(path)
+    date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
+    if date != current_date:
+        return True
+
+def check_updates():
+    update_list = []
+    for item in bpy.context.scene.relink:        
+        update = check_asset(item.path, item.version)
+        if update:
+            update_list.append(item.data_name)
+    update_list = list(set(update_list))
+    if update_list:
+        message = "New asset version for " + ", ".join(update_list)
+        bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
+
+
+
+
+
 
     
 

@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 5, 2),
+    "version" : (1, 5, 3),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -94,7 +94,7 @@ def update_handler(dummy):
 
 @persistent
 def load_handler(dummy):
-    bpy.ops.workflow.resync()
+    check_updates()
 
 #REGISTER UNREGISTER
 classes = (
@@ -133,6 +133,7 @@ classes = (
     WORKFLOW_OT_load_image,
     WORKFLOW_OT_delete_hidden,
     WORKFLOW_OT_clean_up,
+    WORKFLOW_OT_info,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]
@@ -165,6 +166,7 @@ def register():
             data.relink = bpy.props.PointerProperty(type=RELINK_PROP_Data)
 
     bpy.app.handlers.depsgraph_update_post.append(update_handler)
+    bpy.app.handlers.load_post.append(load_handler)
 
 def unregister():
     from bpy.utils import unregister_class
@@ -182,4 +184,4 @@ def unregister():
     
 
     bpy.app.handlers.depsgraph_update_post.remove(update_handler)
-    #bpy.app.handlers.load_post.remove(load_handler)
+    bpy.app.handlers.load_post.remove(load_handler)
