@@ -684,3 +684,34 @@ class WORKFLOW_OT_info(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+class WORKFLOW_OT_node_switch(bpy.types.Operator):
+    
+    bl_idname = "workflow.node_switch"
+    bl_label = "Switch BG Modes"
+    bl_description = "Node Switch"
+    bl_options = {"REGISTER", "UNDO"}
+
+    mode: bpy.props.EnumProperty(
+        name="Select Mode",
+        default=0,
+        items = [
+            ('1', "Color", "", 0),
+            ('2', "Debug", "", 1),
+            ('3', "Texture", "", 2),
+            ]
+        )
+    
+    def execute(self, context):
+        for material in bpy.data.materials:                  
+            if material.node_tree:
+                node_tree = material.node_tree               
+                for node in node_tree.nodes:
+                    if node.bl_idname =="ShaderNodeGroup":
+                        if node.inputs:
+                            if type(node.inputs[0]) == bpy.types.NodeSocketInt:
+                                node.inputs[0].default_value = int(self.mode)
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)

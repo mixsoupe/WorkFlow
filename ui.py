@@ -103,8 +103,9 @@ class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
         layout.operator("workflow.render_material")
         layout.operator("workflow.sync_visibility")
         layout.row().separator()
-        layout.operator("workflow.resync")
+        #layout.operator("workflow.resync")
         layout.operator("workflow.clean_up")
+        layout.operator("workflow.node_switch")
 
 class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
     bl_label = "Animation Tools"
@@ -218,7 +219,7 @@ class WORKFLOW_PT_node_editor_tools(bpy.types.Panel):
         layout.operator("workflow.render_material")
         layout.operator("workflow.load_image")
         layout.operator("workflow.reload_images")
-
+        layout.operator("workflow.node_switch")
 
 #FILE BROWSER PANEL
 
