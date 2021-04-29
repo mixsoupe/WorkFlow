@@ -25,6 +25,7 @@ import time
 import json
 import zipfile
 import uuid
+from pathlib import Path
 
 def color_fill(mask, mask_list):
     white = mathutils.Vector((1, 1, 1, 1))
@@ -373,7 +374,9 @@ def get_asset(library_path, asset):
     name = config.get('ASSET', 'name')
 
     #Make path
+
     full_path = os.path.join(library_path, shortcut_path)
+    
     full_path = os.path.normpath(full_path)
 
     return name, data_type, full_path
@@ -783,7 +786,9 @@ def append_asset(name, data_type, path, active):
     new_item = scene.relink.add()
     new_item.uid = str(uid)
     if bpy.data.is_saved:
-        new_item.path = bpy.path.relpath(path, start=None)
+        filename_resolved = str(Path(bpy.context.blend_data.filepath).resolve())
+        path_resolved = str(Path(path).resolve())  
+        new_item.path = bpy.path.relpath(path_resolved, start=filename_resolved)
     else:
         new_item.path = path
     mod_time = os.path.getmtime(path)
