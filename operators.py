@@ -545,6 +545,13 @@ class WORKFLOW_OT_import_audio(bpy.types.Operator):
                         scene.sequence_editor.sequences.remove(sequence)
 
             audio_file = load_settings('audio_file')
+            
+            #Check if file exist
+            abs_path = bpy.path.abspath(audio_file)
+            if not os.path.isfile(abs_path):
+                self.report({'ERROR'}, 'No audio file to import')
+                return {'CANCELLED'}
+
             soundstrip = scene.sequence_editor.sequences.new_sound("audio", audio_file, 1, 1)
 
             scene.frame_start = 1
