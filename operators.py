@@ -702,9 +702,9 @@ class WORKFLOW_OT_node_switch(bpy.types.Operator):
         name="Select Mode",
         default=0,
         items = [
-            ('1', "Color", "", 0),
-            ('2', "Debug", "", 1),
-            ('3', "Texture", "", 2),
+            ('0', "Color", "", 0),
+            ('1', "Debug", "", 1),
+            ('2', "Texture", "", 2),
             ]
         )
     
