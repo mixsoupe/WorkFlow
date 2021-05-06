@@ -1084,30 +1084,24 @@ def check_asset(path, current_date):
         return True
 
 def check_updates():
-    relink_cleanup()
     update_list = []
-    for item in bpy.context.scene.relink:        
-        update = check_asset(item.path, item.version)
-        if update:
-            update_list.append(item.data_name)
+    objects_uid = []
+
+    for obj in bpy.context.scene.objects:
+        if obj.relink.uid is not None:
+            objects_uid.append(obj.relink.uid)
+    objects_uid = list(set(objects_uid))
+
+    for item in bpy.context.scene.relink:
+        if relink.uid in objects_uid:  
+            update = check_asset(item.path, item.version)
+            if update:
+                update_list.append(item.data_name)
+
     update_list = list(set(update_list))
     if update_list:
         message = "New asset version for " + ", ".join(update_list)
         bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
-
-def relink_cleanup():
-    
-    relink_ids = []
-    for obj in bpy.context.scene.objects:
-        if obj.relink.uid is not None:
-            relink_ids.append(obj.relink.uid)
-    relink_ids = list(set(relink_ids))
-       
-    for relink in bpy.context.scene.relink:        
-        if relink.uid not in relink_ids:
-            #bpy.context.scene.relink.remove()
-            print (bpy.context.scene.relink.find(relink.name))
-
 
 
 
