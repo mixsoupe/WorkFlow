@@ -787,8 +787,8 @@ def append_asset(name, data_type, path, active):
     new_item.uid = str(uid)
     if bpy.data.is_saved:
         filename_resolved = str(Path(bpy.context.blend_data.filepath).resolve())
-        path_resolved = str(Path(path).resolve())  
-        new_item.path = bpy.path.relpath(path_resolved, start=filename_resolved)
+        path_resolved = str(Path(path).resolve())
+        new_item.path = bpy.path.relpath(path_resolved, start=os.path.dirname(filename_resolved))
     else:
         new_item.path = path
     mod_time = os.path.getmtime(path)
@@ -1104,12 +1104,6 @@ def check_updates():
         bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
 
 
-
-
-
-    
-
-    
                 
 
                 
