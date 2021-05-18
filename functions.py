@@ -1093,7 +1093,15 @@ def check_updates():
     objects_uid = list(set(objects_uid))
 
     for item in bpy.context.scene.relink:
-        if relink.uid in objects_uid:  
+        if item.uid in objects_uid:
+
+            #FIX PATH
+            path = os.path.normpath(bpy.path.abspath(item.path))
+            filename_resolved = str(Path(bpy.context.blend_data.filepath).resolve())
+            path_resolved = str(Path(path).resolve())
+            fix_path = bpy.path.relpath(path_resolved, start=os.path.dirname(filename_resolved))
+            item.path = fix_path
+          
             update = check_asset(item.path, item.version)
             if update:
                 update_list.append(item.data_name)
