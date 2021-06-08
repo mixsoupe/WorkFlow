@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 5, 10),
+    "version" : (1, 6, 0),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -95,6 +95,7 @@ def update_handler(dummy):
 @persistent
 def load_handler(dummy):
     check_updates()
+    update_cam_link()
 
 #REGISTER UNREGISTER
 classes = (
@@ -135,6 +136,7 @@ classes = (
     WORKFLOW_OT_clean_up,
     WORKFLOW_OT_info,
     WORKFLOW_OT_node_switch,
+    WORKFLOW_OT_update_cam_link,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]

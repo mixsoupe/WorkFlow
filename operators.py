@@ -722,3 +722,17 @@ class WORKFLOW_OT_node_switch(bpy.types.Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
+
+
+class WORKFLOW_OT_update_cam_link(bpy.types.Operator):
+    
+    bl_idname = "workflow.update_cam_link"
+    bl_label = "Update Camera Link"
+    bl_description = "Clean up unused datablocks"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+        update_cam_link()        
+        return {'FINISHED'}
+
+

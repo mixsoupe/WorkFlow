@@ -26,6 +26,7 @@ import json
 import zipfile
 import uuid
 from pathlib import Path
+from re import findall
 
 def color_fill(mask, mask_list):
     white = mathutils.Vector((1, 1, 1, 1))
@@ -797,6 +798,8 @@ def append_asset(name, data_type, path, active):
     new_item.data_type = data_type
     new_item.data_name = name
 
+    update_cam_link()
+
     return asset[0].name, uid
 
 def relink(uid):
@@ -872,7 +875,9 @@ def relink(uid):
         if obj.relink.uid == str(new_uid):
             #Remap actions
             if obj.relink.original_name in actions.keys():
-                obj.animation_data.action = actions[obj.relink.original_name]  
+                if obj.animation_data is not None:
+                    obj.animation_data.action = actions[obj.relink.original_name]
+
 
             #Remap constraints
             if old_objects.get(obj.relink.original_name) is not None:      
@@ -1111,8 +1116,43 @@ def check_updates():
         message = "New asset version for " + ", ".join(update_list)
         bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
 
+def get_bpy_struct( obj_id, path):
+    """ Gets a bpy_struct or property from an ID and an RNA path
+        Returns None in case the path is invalid
+        """
+    try:
+        # this regexp matches with two results: first word and what's in brackets if any
+        # "prop['test']" -> [("prop", "'test'")]
+        # "prop" -> [("prop","")]
+        # "prop[12]" -> [("prop","12")]
+        matches = findall( r'(\w+)?(?:\[([^\]]+)\])?' , path )
+        for i,match in enumerate(matches) :
+            attr = match[0]
+            arr = match[1]
+            if i == len(matches) -2:
+                if attr != '' and  arr != '':
+                    obj_id = getattr(obj_id, attr)
+                    return obj_id, '[' + arr + ']'
+                elif attr != '':
+                    return obj_id, attr
+                else:
+                    return obj_id, '[' + arr + ']'
+            if attr != '':
+                obj_id = getattr(obj_id, attr)
+            if arr != '':
+                obj_id = obj_id[ eval(arr) ]
+        return None           
+    except:
+        return None
 
-                
+def update_cam_link():
+    for obj in bpy.context.scene.collection.all_objects:
+        for cam_linker in obj.cam_linkers:
+            for cam_linker in obj.cam_linkers:
+                if (cam_linker.target_rna != ''):
+                    struct = get_bpy_struct(obj, cam_linker.target_rna)
+                    if not (struct is None):
+                        setattr(struct[0], struct[1], bpy.context.scene.camera)      
 
                 
 
