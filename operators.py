@@ -715,7 +715,7 @@ class WORKFLOW_OT_node_switch(bpy.types.Operator):
                 for node in node_tree.nodes:
                     if node.bl_idname =="ShaderNodeGroup":
                         if node.inputs:
-                            if type(node.inputs[0]) == bpy.types.NodeSocketInt:
+                            if type(node.inputs[0]) == bpy.types.NodeSocketInt and node.inputs[0].name != "Preview":
                                 node.inputs[0].default_value = int(self.mode)
         return {'FINISHED'}
     
