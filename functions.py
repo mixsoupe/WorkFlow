@@ -824,6 +824,22 @@ def relink(uid):
             if obj.data:
                 obj.data.name = obj.data.name + str(uid)
             old_objects[obj.relink.original_name] = obj
+    #Keep Shader parameters
+    nodes_parameters = {}
+    for material in bpy.data.materials:
+        if material.relink.uid == uid:
+            if material.node_tree is not None:
+                for node_tree in traverse_node_tree(material.node_tree):
+                    for node in node_tree.nodes:
+                        if node.bl_idname == "ShaderNodeGroup":
+                            if node.name == "Group":
+                                parameters = []
+                                for input in node.inputs:
+                                    parameters.append(input.default_value)
+
+                                nodes_parameters[node.name] = parameters
+    print (nodes_parameters)
+
 
     #Remove collections
     coll_scene = bpy.context.scene.collection
