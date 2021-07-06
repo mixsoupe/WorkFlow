@@ -837,8 +837,11 @@ def relink(uid):
                                 for input in node.inputs:
                                     if input.bl_idname == "NodeSocketColor":
                                         value = input.default_value[:] 
-                                    elif input.bl_idname == "NodeSocketObject":                                        
-                                        value = input.default_value.name
+                                    elif input.bl_idname == "NodeSocketObject":
+                                        if input.default_value:                                      
+                                            value = input.default_value.name
+                                        else:
+                                            value = False
                                     else:
                                         value = input.default_value                          
                                     parameters.append(value)
@@ -960,10 +963,8 @@ def relink(uid):
                                 if node_settings:                        
                                     for i, input in enumerate(node.inputs):
                                         if input.bl_idname == "NodeSocketObject":
-                                            value = bpy.data.objects[node_settings[i]]
-                                            print (value)
-                                            #if value:
-                                                #input.default_value = value.name
+                                            if node_settings[i]:
+                                                input.default_value = bpy.data.objects[node_settings[i]]
                                         else:
                                             input.default_value = node_settings[i]
                                     
