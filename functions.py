@@ -825,7 +825,7 @@ def relink(uid):
                 obj.data.name = obj.data.name + str(uid)
             old_objects[obj.relink.original_name] = obj
     #Keep Shader parameters
-    nodes_parameters = {}
+    materials_settings = {}
     for material in bpy.data.materials:
         if material.relink.uid == uid:
             if material.node_tree is not None:
@@ -837,14 +837,12 @@ def relink(uid):
                                 for input in node.inputs:
                                     if input.bl_idname == "NodeSocketColor":
                                         value = input.default_value[:] 
-                                    elif input.bl_idname == "NodeSocketObject":
+                                    elif input.bl_idname == "NodeSocketObject":                                        
                                         value = input.default_value.name
                                     else:
                                         value = input.default_value                          
                                     parameters.append(value)
-                                nodes_parameters[node.name] = parameters
-    print (nodes_parameters)
-
+                                materials_settings[material.name] = {node.node_tree.name : parameters}
 
     #Remove collections
     coll_scene = bpy.context.scene.collection
@@ -949,6 +947,26 @@ def relink(uid):
                     obj.rotation_quaternion = old_obj.rotation_quaternion      
                     obj.scale = old_obj.scale
 
+    #Update material settings
+    
+    for material in bpy.data.materials:
+        if material.relink.uid == str(new_uid):
+            if material.node_tree is not None:
+                for node_tree in traverse_node_tree(material.node_tree):
+                    for node in node_tree.nodes:
+                        if node.bl_idname in ('ShaderNodeGroup', 'ILLU_2DShade'):
+                            if materials_settings:
+                                node_settings = materials_settings.get(material.name).get(node.node_tree.name)
+                                if node_settings:                        
+                                    for i, input in enumerate(node.inputs):
+                                        if input.bl_idname == "NodeSocketObject":
+                                            value = bpy.data.objects[node_settings[i]]
+                                            print (value)
+                                            #if value:
+                                                #input.default_value = value.name
+                                        else:
+                                            input.default_value = node_settings[i]
+                                    
     #Delete old objects
     for old_obj in old_objects.values():    
         #Delete object data
