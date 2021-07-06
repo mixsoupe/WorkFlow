@@ -831,12 +831,17 @@ def relink(uid):
             if material.node_tree is not None:
                 for node_tree in traverse_node_tree(material.node_tree):
                     for node in node_tree.nodes:
-                        if node.bl_idname == "ShaderNodeGroup":
-                            if node.name == "Group":
+                        if node.bl_idname in ('ShaderNodeGroup', 'ILLU_2DShade'):
+                            if node.override:
                                 parameters = []
                                 for input in node.inputs:
-                                    parameters.append(input.default_value)
-
+                                    if input.bl_idname == "NodeSocketColor":
+                                        value = input.default_value[:] 
+                                    elif input.bl_idname == "NodeSocketObject":
+                                        value = input.default_value.name
+                                    else:
+                                        value = input.default_value                          
+                                    parameters.append(value)
                                 nodes_parameters[node.name] = parameters
     print (nodes_parameters)
 

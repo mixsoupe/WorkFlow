@@ -203,7 +203,6 @@ class WORKFLOW_PT_camera_render(bpy.types.Panel):
         layout.prop(obj.data.render, "resolution_y")
 
 #NODE EDITOR PANEL
-
 class WORKFLOW_PT_node_editor_tools(bpy.types.Panel):
     bl_label = "Tools"
     bl_idname = "WORKFLOW_PT_node_tools"
@@ -220,6 +219,24 @@ class WORKFLOW_PT_node_editor_tools(bpy.types.Panel):
         layout.operator("workflow.load_image")
         layout.operator("workflow.reload_images")
         layout.operator("workflow.node_switch")
+
+class WORKFLOW_PT_node_editor_relink(bpy.types.Panel):
+    bl_label = "Relink"
+    bl_idname = "WORKFLOW_PT_node_relink"
+    bl_space_type = "NODE_EDITOR"   
+    bl_region_type = "UI"
+    bl_category = "WorkFlow"
+
+    @classmethod
+    def poll(self,context):
+        node = context.active_node
+        if node is None:
+            return False
+        return node.bl_idname in ('ShaderNodeGroup', 'ILLU_2DShade')
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.active_node, "override")
 
 #FILE BROWSER PANEL
 

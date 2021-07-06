@@ -112,6 +112,7 @@ classes = (
     WORKFLOW_PT_node_editor_tools,
     WORKFLOW_PT_object_palette,
     WORKFLOW_PT_camera_render,
+    WORKFLOW_PT_node_editor_relink,
     WORKFLOW_OT_delete_scenes,
     WORKFLOW_OT_render_material,
     WORKFLOW_OT_projection_node,
@@ -163,6 +164,9 @@ def register():
     if not hasattr( bpy.types.Scene, 'relink'):
         bpy.types.Scene.relink = bpy.props.CollectionProperty(type=RELINK_PROP_Scene)
     
+    if not hasattr( bpy.types.ShaderNodeGroup, 'override'):
+        bpy.types.ShaderNodeGroup.override = bpy.props.BoolProperty(name="Override", default=False)
+    
     for tp in relink_types:
         data = getattr(bpy.types, tp)
         if not hasattr(data, 'relink'):
@@ -181,6 +185,7 @@ def unregister():
     del bpy.types.Scene.previous_camera
     del bpy.types.Scene.animation_filepath
     del bpy.types.Scene.relink
+    del bpy.types.ShaderNodeGroup.override
     for tp in relink_types:
         data = getattr(bpy.types, tp)
         del data.relink

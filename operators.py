@@ -85,10 +85,11 @@ class WORKFLOW_OT_projection_node(bpy.types.Operator):
     @classmethod
     def poll(cls,context):
         obj = context.active_object
-        obj_type = obj.type
-        is_geometry = (obj_type in {'MESH',})
+        if obj is not None:
+            obj_type = obj.type
+            is_geometry = (obj_type in {'MESH',})
 
-        return is_geometry
+            return is_geometry
     
     def execute(self, context):
         camera = bpy.data.objects[self.options]
@@ -111,10 +112,11 @@ class WORKFLOW_OT_copy_material(bpy.types.Operator):
     @classmethod
     def poll(cls,context):
         obj = context.active_object
-        obj_type = obj.type
-        is_geometry = (obj_type in {'MESH',})
+        if obj is not None:
+            obj_type = obj.type
+            is_geometry = (obj_type in {'MESH',})
 
-        return is_geometry
+            return is_geometry
     
     def execute(self, context):
         obj = bpy.context.active_object
