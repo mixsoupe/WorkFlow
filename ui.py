@@ -132,6 +132,25 @@ class WORKFLOW_PT_view3d_animation_tools(bpy.types.Panel):
         layout.operator("workflow.copy_previous_keyframe")
         layout.operator("workflow.copy_next_keyframe")
 
+class WORKFLOW_PT_view3d_rendering_tools(bpy.types.Panel):
+    bl_label = "Rendering Tools"
+    bl_idname = "WORKFLOW_PT_view_3D_rendering_tools"
+    bl_space_type = "VIEW_3D"   
+    bl_region_type = "UI"
+    bl_category = "WorkFlow"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        #Check for update
+        addon_updater_ops.check_for_update_background()
+        if addon_updater_ops.updater.update_ready == True:
+            layout.label(text = "New addon version available", icon="INFO")
+
+        layout.operator("workflow.render")
+
+
 class WORKFLOW_PT_view3d_production(bpy.types.Panel):
     bl_label = "Production"
     bl_idname = "WORKFLOW_PT_production"

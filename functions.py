@@ -309,7 +309,40 @@ def preview(filepath, publish = False):
     path = os.path.dirname(path)
     os.startfile(path)
 
+def set_render_settings():
+    scene = bpy.context.scene
 
+    #Change Settings
+    scene.render.image_settings.file_format = "OPEN_EXR_MULTILAYER"
+    scene.render.image_settings.color_mode = "RGBA"
+    scene.render.image_settings.color_depth = "32"
+    scene.render.image_settings.exr_codec = "ZIP"
+    scene.render.use_overwrite = True
+
+    scene.render.film_transparent = False
+
+    #Metadata
+    scene.render.use_stamp_note = False
+    scene.render.use_stamp = False
+
+    #Cryptomatte
+    bpy.context.view_layer.use_pass_cryptomatte_object = True
+    bpy.context.view_layer.use_pass_cryptomatte_material = False
+    bpy.context.view_layer.use_pass_cryptomatte_asset = False
+    bpy.context.view_layer.pass_cryptomatte_depth = 6 
+    bpy.context.view_layer.use_pass_cryptomatte_accurate = True
+
+    #Render
+    sound_count = 0
+    for sequence in scene.sequence_editor.sequences:            
+        if sequence.type == 'SOUND':
+            sound_count += 1
+    if sound_count == 1:
+        scene.frame_start = 1
+        scene.frame_end = sequence.frame_final_duration
+
+    if bpy.context.scene.playback:
+        bpy.context.scene.playback = True
 
 def traverse_tree(t):
     yield t
@@ -949,6 +982,10 @@ def relink(uid):
                     obj.rotation_euler = old_obj.rotation_euler       
                     obj.rotation_quaternion = old_obj.rotation_quaternion      
                     obj.scale = old_obj.scale
+                    
+                #Update illu
+                if obj.illu:
+                    obj.illu.cast_shadow = old_obj.illu.cast_shadow
 
     #Update material settings
     

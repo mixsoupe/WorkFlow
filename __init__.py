@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 6, 1),
+    "version" : (1, 7, 0),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -113,6 +113,7 @@ classes = (
     WORKFLOW_PT_object_palette,
     WORKFLOW_PT_camera_render,
     WORKFLOW_PT_node_editor_relink,
+    WORKFLOW_PT_view3d_rendering_tools,
     WORKFLOW_OT_delete_scenes,
     WORKFLOW_OT_render_material,
     WORKFLOW_OT_projection_node,
@@ -138,6 +139,7 @@ classes = (
     WORKFLOW_OT_info,
     WORKFLOW_OT_node_switch,
     WORKFLOW_OT_update_cam_link,
+    WORKFLOW_OT_render,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]
