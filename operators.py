@@ -654,6 +654,26 @@ class WORKFLOW_OT_update_asset(bpy.types.Operator):
     bl_label = "Update Asset"
     bl_description = "Update Asset"
     bl_options = {"REGISTER", "UNDO"}
+
+    """
+    @classmethod
+    def poll(self, context):
+        obj = context.active_object
+        if obj is None: return False
+        if obj.relink.uid == "": return False
+        # Get corresponding item to check if path exists
+        for item in context.scene.relink:            
+            if item.uid == obj.relink.uid:
+                print(os.path.sep)
+                path = item.path
+                print(path)
+                path = path.replace('\\', os.path.sep).replace('/', os.path.sep)
+                print(path)
+                path = bpy.path.abspath(path)
+                print(path)
+                if os.path.isfile(path): return True
+        return False
+    """ 
     
     def execute(self, context):
         uid = bpy.context.object.relink.uid        

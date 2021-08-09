@@ -843,6 +843,8 @@ def relink(uid):
             name = item.data_name
             data_type = item.data_type
             path = bpy.path.abspath(item.path)
+            #path = item.path.replace('\\', os.path.sep).replace('/', os.path.sep)
+            #path = bpy.path.abspath(path)
 
     actions = {}
     old_objects = {}    
@@ -984,7 +986,7 @@ def relink(uid):
                     obj.scale = old_obj.scale
                     
                 #Update illu
-                if obj.illu:
+                if hasattr(obj, "illu"):
                     obj.illu.cast_shadow = old_obj.illu.cast_shadow
 
     #Update material settings
@@ -1044,7 +1046,6 @@ def convert_asset():
                 if obj.type == "ARMATURE":
                     transform = {}
                     #KEEP transform
-                    print (obj.name)
                     action = obj.animation_data.action 
                     if action is not None:
                         action.use_fake_user = True
@@ -1141,8 +1142,6 @@ def delete_hidden():
         if collection.collection.hide_viewport or collection.exclude or collection.hide_viewport:
             collection_hide.append(collection.collection)
 
-    print (collection_hide)
-
     #Delete objects and collections    
     ids = bpy.context.selected_ids  
     for collection in ids:
@@ -1159,6 +1158,7 @@ def delete_hidden():
             bpy.data.collections.remove(c)
 
 def check_asset(path, current_date):
+    #path = path.replace('\\', os.path.sep).replace('/', os.path.sep)
     path = bpy.path.abspath(path)
     mod_time = os.path.getmtime(path)
     date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
