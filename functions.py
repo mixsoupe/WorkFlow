@@ -13,7 +13,7 @@
 # 
 # 
 #
-
+# type: ignore
 
 import bpy
 import os
@@ -870,7 +870,7 @@ def relink(uid):
                     for node in node_tree.nodes:
                         if node.bl_idname in ('ShaderNodeGroup', 'ILLU_2DShade'):
                             if node.override:
-                                parameters = []
+                                parameters = {}
                                 for input in node.inputs:
                                     if input.bl_idname == "NodeSocketColor":
                                         value = input.default_value[:] 
@@ -880,8 +880,8 @@ def relink(uid):
                                         else:
                                             value = False
                                     else:
-                                        value = input.default_value                          
-                                    parameters.append(value)
+                                        value = input.default_value                                                      
+                                    parameters[input.name] = value
                                 materials_settings[material.name] = {node.node_tree.name : parameters}
 
     #Remove collections
@@ -1001,14 +1001,15 @@ def relink(uid):
                         if node.bl_idname in ('ShaderNodeGroup', 'ILLU_2DShade'):
                             if materials_settings:
                                 node_settings = materials_settings.get(material.name).get(node.node_tree.name)
-                                if node_settings:                        
-                                    for i, input in enumerate(node.inputs):
-                                        if input.bl_idname == "NodeSocketObject":
-                                            if node_settings[i]:
-                                                input.default_value = bpy.data.objects[node_settings[i]]
-                                        else:
-                                            input.default_value = node_settings[i]
-                                    
+                                if node_settings:
+                                    for input in node.inputs:                                                                              
+                                        value = node_settings.get(input.name)
+                                        if value is not None:
+                                            if input.bl_idname == "NodeSocketObject":
+                                                input.default_value = bpy.data.objects[value]
+                                            else:
+                                                input.default_value = value
+  
     #Delete old objects
     for old_obj in old_objects.values():    
         #Delete object data
