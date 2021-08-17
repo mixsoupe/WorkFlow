@@ -21,6 +21,7 @@ from . properties import *
 from . ui import *
 from . nodes import *
 import json
+import platform
 
 #OPERATORS
 
@@ -655,7 +656,7 @@ class WORKFLOW_OT_update_asset(bpy.types.Operator):
     bl_description = "Update Asset"
     bl_options = {"REGISTER", "UNDO"}
 
-    """
+    
     @classmethod
     def poll(self, context):
         obj = context.active_object
@@ -664,16 +665,13 @@ class WORKFLOW_OT_update_asset(bpy.types.Operator):
         # Get corresponding item to check if path exists
         for item in context.scene.relink:            
             if item.uid == obj.relink.uid:
-                print(os.path.sep)
                 path = item.path
-                print(path)
-                path = path.replace('\\', os.path.sep).replace('/', os.path.sep)
-                print(path)
+                if platform.system() == "Linux":
+                    path = path.replace('\\', os.path.sep).replace('/', os.path.sep)
                 path = bpy.path.abspath(path)
-                print(path)
                 if os.path.isfile(path): return True
         return False
-    """ 
+    
     
     def execute(self, context):
         uid = bpy.context.object.relink.uid        

@@ -27,6 +27,7 @@ import zipfile
 import uuid
 from pathlib import Path
 from re import findall
+import platform
 
 def color_fill(mask, mask_list):
     white = mathutils.Vector((1, 1, 1, 1))
@@ -842,9 +843,10 @@ def relink(uid):
         if item.uid == uid:
             name = item.data_name
             data_type = item.data_type
-            path = bpy.path.abspath(item.path)
-            #path = item.path.replace('\\', os.path.sep).replace('/', os.path.sep)
-            #path = bpy.path.abspath(path)
+            path = item.path
+            if platform.system() == "Linux":
+                path = path.replace('\\', os.path.sep).replace('/', os.path.sep)
+            path = bpy.path.abspath(path)
 
     actions = {}
     old_objects = {}    
@@ -1158,8 +1160,10 @@ def delete_hidden():
             bpy.data.collections.remove(c)
 
 def check_asset(path, current_date):
-    #path = path.replace('\\', os.path.sep).replace('/', os.path.sep)
+    if platform.system() == "Linux":
+        path = path.replace('\\', os.path.sep).replace('/', os.path.sep)
     path = bpy.path.abspath(path)
+    
     mod_time = os.path.getmtime(path)
     date = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(mod_time))
     if date != current_date:
