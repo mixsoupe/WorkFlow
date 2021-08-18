@@ -878,7 +878,7 @@ def relink(uid):
                                         if input.default_value:                                      
                                             value = input.default_value.name
                                         else:
-                                            value = False
+                                            value = None
                                     else:
                                         value = input.default_value                                                      
                                     parameters[input.name] = value
