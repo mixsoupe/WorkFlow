@@ -999,7 +999,7 @@ def relink(uid):
                 for node_tree in traverse_node_tree(material.node_tree):
                     for node in node_tree.nodes:
                         if node.bl_idname in ('ShaderNodeGroup', 'ILLU_2DShade'):
-                            if materials_settings:
+                            if materials_settings.get(material.name) is not None:
                                 node_settings = materials_settings.get(material.name).get(node.node_tree.name)
                                 if node_settings:
                                     for input in node.inputs:                                                                              
