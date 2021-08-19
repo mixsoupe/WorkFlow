@@ -635,7 +635,10 @@ def copy_keyframe(previous = False, next = False, ):
 
                 #Check if bone is selected
                 if selected_bones:
-                    anim_bone_name = fcu.data_path.split('"')[1]
+                    try:                                  
+                        anim_bone_name = fcu.data_path.split('"')[1]
+                    except:
+                        continue
                     if anim_bone_name not in selected_bones:
                         continue
 
