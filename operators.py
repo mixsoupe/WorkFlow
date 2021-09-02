@@ -204,6 +204,7 @@ class WORKFLOW_OT_render(bpy.types.Operator):
     rendering = None
     path = None
     playback = None
+    console = True
 
     current_frame: bpy.props.IntProperty(
         name="Frame Start",
@@ -245,6 +246,16 @@ class WORKFLOW_OT_render(bpy.types.Operator):
         context.window_manager.event_timer_remove(self._timer)
 
     def execute(self, context):
+        
+        if self.console:            
+            if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
+                self.report({'ERROR'}, 'Load Settings before render')
+                return {'CANCELLED'}
+            set_render_settings()
+            self.path = load_settings('render_output')
+            self.current_frame = context.scene.frame_start
+            self.frame_end = context.scene.frame_end
+            self.frame_end = 3 #DEBUG
 
         if bpy.context.scene.playback is not None:
             self.playback = bpy.context.scene.playback
@@ -255,7 +266,8 @@ class WORKFLOW_OT_render(bpy.types.Operator):
         self.add_handlers(context)
         return {"RUNNING_MODAL"}
 
-    def modal(self, context, event):            
+    def modal(self, context, event):
+              
         if event.type == 'TIMER':
             if self.stop:
                 self.remove_handlers(context)
@@ -280,7 +292,7 @@ class WORKFLOW_OT_render(bpy.types.Operator):
         if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
             self.report({'ERROR'}, 'Load Settings before render')
             return {'CANCELLED'}
-
+        self.console = False
         set_render_settings()
         self.path = load_settings('render_output')
         self.current_frame = context.scene.frame_start
