@@ -256,6 +256,8 @@ class WORKFLOW_PT_node_editor_relink(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.prop(context.active_node, "override")
+        if context.active_node.override:
+            layout.prop(context.active_node, "override_colors")
 
 #FILE BROWSER PANEL
 

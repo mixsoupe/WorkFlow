@@ -876,7 +876,10 @@ def relink(uid):
                                 parameters = {}
                                 for input in node.inputs:
                                     if input.bl_idname == "NodeSocketColor":
-                                        value = input.default_value[:] 
+                                        if node.override_colors:
+                                            value = input.default_value[:]
+                                        else:
+                                            value = None 
                                     elif input.bl_idname == "NodeSocketObject":
                                         if input.default_value:                                      
                                             value = input.default_value.name
@@ -895,8 +898,7 @@ def relink(uid):
     collection_delete = []
     for collection in bpy.data.collections:        
         if collection.relink.uid == uid and collection.relink.master:
-            coll_parent = coll_parents.get(collection.name)
-    
+            coll_parent = coll_parents.get(collection.name) 
             for child_collection in traverse_tree(collection):
                 collection_delete.append(child_collection)
 
@@ -926,18 +928,19 @@ def relink(uid):
         if item.uid == uid:
             bpy.context.scene.relink.remove(index)
     
-    #Reload    
+    #Reload 
     layer_collection = bpy.context.view_layer.layer_collection
     layerColl = recurLayerCollection(layer_collection, coll_parent)
     bpy.context.view_layer.active_layer_collection = layerColl
-
+    
     result, new_uid = append_asset(name, data_type, path, True)
     
     for obj in bpy.data.objects:
         if obj.relink.uid == str(new_uid):
             #Remap actions
-            if obj.relink.original_name in actions.keys():
+            if obj.relink.original_name in actions.keys():                
                 if obj.animation_data is not None:
+                    print (obj.relink.original_name)
                     obj.animation_data.action = actions[obj.relink.original_name]
 
 

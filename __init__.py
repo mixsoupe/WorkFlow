@@ -18,7 +18,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 8, 5),
+    "version" : (1, 8, 6),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -170,6 +170,9 @@ def register():
     
     if not hasattr( bpy.types.ShaderNodeGroup, 'override'):
         bpy.types.ShaderNodeGroup.override = bpy.props.BoolProperty(name="Override", default=False)
+
+    if not hasattr( bpy.types.ShaderNodeGroup, 'override_colors'):
+        bpy.types.ShaderNodeGroup.override_colors = bpy.props.BoolProperty(name="Keep Colors", default=True)
     
     for tp in relink_types:
         data = getattr(bpy.types, tp)
@@ -189,6 +192,7 @@ def unregister():
     del bpy.types.Scene.previous_camera
     del bpy.types.Scene.animation_filepath
     del bpy.types.Scene.relink
+    del bpy.types.ShaderNodeGroup.override_colors
     del bpy.types.ShaderNodeGroup.override
     for tp in relink_types:
         data = getattr(bpy.types, tp)
