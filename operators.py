@@ -200,12 +200,22 @@ class WORKFLOW_OT_render(bpy.types.Operator):
     bl_description = "Render Scene"
 
     _timer = None
-    current_frame = None
-    last_frame = None
     stop = None
     rendering = None
     path = None
     playback = None
+
+    current_frame: bpy.props.IntProperty(
+        name="Frame Start",
+        default=1,
+        )
+
+    frame_end: bpy.props.IntProperty(
+        name="Frame End",
+        default=100,        
+        )
+
+
 
     def pre(self, scene, context):
         self.rendering = True
@@ -235,17 +245,11 @@ class WORKFLOW_OT_render(bpy.types.Operator):
         context.window_manager.event_timer_remove(self._timer)
 
     def execute(self, context):
-        if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
-            self.report({'ERROR'}, 'Load Settings before render')
-            return {'CANCELLED'}
+
         if bpy.context.scene.playback is not None:
             self.playback = bpy.context.scene.playback
             bpy.context.scene.playback = True
-
-        set_render_settings()
-        self.path = load_settings('render_output')
-        self.current_frame = context.scene.frame_start
-        self.last_frame = context.scene.frame_end
+        
         self.stop = False
         self.rendering = False
         self.add_handlers(context)
@@ -258,7 +262,7 @@ class WORKFLOW_OT_render(bpy.types.Operator):
                 if bpy.context.scene.playback is not None:
                     bpy.context.scene.playback = self.playback
                 return {"CANCELLED"}
-            if self.current_frame > self.last_frame:
+            if self.current_frame > self.frame_end:
                 self.remove_handlers(context)
                 if bpy.context.scene.playback is not None:
                     bpy.context.scene.playback = self.playback
@@ -271,6 +275,19 @@ class WORKFLOW_OT_render(bpy.types.Operator):
                 bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
 
         return {"PASS_THROUGH"}
+
+    def invoke(self, context, event):
+        if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
+            self.report({'ERROR'}, 'Load Settings before render')
+            return {'CANCELLED'}
+
+        set_render_settings()
+        self.path = load_settings('render_output')
+        self.current_frame = context.scene.frame_start
+        self.frame_end = context.scene.frame_end
+
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 class WORKFLOW_OT_custom_preview(bpy.types.Operator, ExportHelper):
