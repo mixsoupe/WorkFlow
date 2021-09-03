@@ -142,6 +142,7 @@ classes = (
     WORKFLOW_OT_node_switch,
     WORKFLOW_OT_update_cam_link,
     WORKFLOW_OT_render,
+    WORKFLOW_OT_test,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]
