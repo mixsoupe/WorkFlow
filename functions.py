@@ -875,9 +875,12 @@ def relink(uid):
                             if node.override:
                                 parameters = {}
                                 for input in node.inputs:
-                                    if input.bl_idname == "NodeSocketColor":
-                                        if node.override_colors:
+                                    if input.bl_idname == "NodeSocketColor" :
+                                        if node.override_colors or input.name == "Tons Clairs" or input.name == "Tons Fonçés":
                                             value = input.default_value[:]
+                                        #if input.name == "Tons Clairs":
+                                            #value = input.default_value[:]
+              
                                         else:
                                             value = None 
                                     elif input.bl_idname == "NodeSocketObject":
