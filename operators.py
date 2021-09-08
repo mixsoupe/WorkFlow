@@ -193,19 +193,6 @@ class WORKFLOW_OT_publish_preview(bpy.types.Operator):
             self.report({'ERROR'}, 'Load Settings before Playblast')
             return {'CANCELLED'}
 
-class WORKFLOW_OT_test(bpy.types.Operator):
-    
-    bl_idname = "workflow.test"
-    bl_label = "test"
-    bl_description = "test"
-
-    def execute(self, context):
-        for step in range(1, 4):    
-            bpy.context.scene.frame_set(step)
-            bpy.data.scenes["Scene"].render.filepath = 'C:/Users/Enclume/Desktop/TEST/test_%d' % step
-            bpy.ops.render.render( write_still=True )
-        return {'FINISHED'}
-
 class WORKFLOW_OT_render(bpy.types.Operator):
     
     bl_idname = "workflow.render"
@@ -268,7 +255,7 @@ class WORKFLOW_OT_render(bpy.types.Operator):
             self.path = load_settings('render_output')
             self.current_frame = context.scene.frame_start
             self.frame_end = context.scene.frame_end
-            self.frame_end = 3 #DEBUG
+            #self.frame_end = 3 #DEBUG
 
         if bpy.context.scene.playback is not None:
             self.playback = bpy.context.scene.playback
