@@ -257,9 +257,9 @@ class WORKFLOW_OT_render_TODELETE(bpy.types.Operator): #Old render to delete
             self.frame_end = context.scene.frame_end
             #self.frame_end = 3 #DEBUG
 
-        if bpy.context.scene.playback is not None:
-            self.playback = bpy.context.scene.playback
-            bpy.context.scene.playback = True
+        if bpy.context.scene.illu_playback is not None:
+            self.playback = bpy.context.scene.illu_playback
+            bpy.context.scene.illu_playback = True
         
         self.stop = False
         self.rendering = False
@@ -271,13 +271,13 @@ class WORKFLOW_OT_render_TODELETE(bpy.types.Operator): #Old render to delete
         if event.type == 'TIMER':
             if self.stop:
                 self.remove_handlers(context)
-                if bpy.context.scene.playback is not None:
-                    bpy.context.scene.playback = self.playback
+                if bpy.context.scene.illu_playback is not None:
+                    bpy.context.scene.illu_playback = self.playback
                 return {"CANCELLED"}
             if self.current_frame > self.frame_end:
                 self.remove_handlers(context)
-                if bpy.context.scene.playback is not None:
-                    bpy.context.scene.playback = self.playback
+                if bpy.context.scene.illu_playback is not None:
+                    bpy.context.scene.illu_playback = self.playback
                 return {"FINISHED"}
             if self.rendering is False:
                 sc = context.scene
@@ -319,6 +319,10 @@ class WORKFLOW_OT_render(bpy.types.Operator):
         )
 
     def execute(self, context):
+        #Disable Illu Playback
+        if hasattr(bpy.context.scene, "illu_playback"):
+            playback = bpy.context.scene.illu_playback
+            bpy.context.scene.illu_playback = False
         
         #Render loop
         for frame in range(self.frame_start, self.frame_end + 1):    
@@ -329,6 +333,11 @@ class WORKFLOW_OT_render(bpy.types.Operator):
         
         #Restore path
         bpy.context.scene.render.filepath = self.path
+
+        #Restore Illu Playback
+        if hasattr(bpy.context.scene, "illu_playback"):
+            bpy.context.scene.illu_playback = playback
+
         return {'FINISHED'}
     
 
