@@ -342,7 +342,7 @@ def set_render_settings():
         scene.frame_start = 1
         scene.frame_end = sequence.frame_final_duration
 
-    if bpy.context.scene.playback:
+    if hasattr(bpy.context.scene, "playback"):
         bpy.context.scene.playback = True
 
 def traverse_tree(t):

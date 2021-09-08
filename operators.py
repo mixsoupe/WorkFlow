@@ -193,7 +193,7 @@ class WORKFLOW_OT_publish_preview(bpy.types.Operator):
             self.report({'ERROR'}, 'Load Settings before Playblast')
             return {'CANCELLED'}
 
-class WORKFLOW_OT_render(bpy.types.Operator):
+class WORKFLOW_OT_render_TODELETE(bpy.types.Operator): #Old render to delete
     
     bl_idname = "workflow.render"
     bl_label = "Render"
@@ -300,87 +300,52 @@ class WORKFLOW_OT_render(bpy.types.Operator):
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
-"""
+
 
 class WORKFLOW_OT_render(bpy.types.Operator):
     
     bl_idname = "workflow.render"
-    bl_label = "Render"
-    bl_description = "Render Scene"
+    bl_label = "Render Animation"
+    bl_description = "Render Animation"
 
-    _timer = None
-    current_frame = None
-    last_frame = None
-    stop = None
-    rendering = None
-    path = None
-    playback = None
+    frame_start: bpy.props.IntProperty(
+        name="Frame Start",
+        default=1,
+        )
 
-    def pre(self, scene, context):
-        self.rendering = True
-        print ("")   
-
-    def post(self, scene, context):
-        self.current_frame += 1
-        self.rendering = False
-        print ("")   
-
-    def cancelled(self, scene, context):
-        self.stop = True
-        print ("")        
-        
-    def add_handlers(self, context):
-        bpy.app.handlers.render_pre.append(self.pre)
-        bpy.app.handlers.render_post.append(self.post)
-        bpy.app.handlers.render_cancel.append(self.cancelled)
-
-        self._timer = context.window_manager.event_timer_add(0.1, window=context.window)
-        context.window_manager.modal_handler_add(self)
-    
-    def remove_handlers(self, context):
-        bpy.app.handlers.render_pre.remove(self.pre)
-        bpy.app.handlers.render_post.remove(self.post)
-        bpy.app.handlers.render_cancel.remove(self.cancelled)
-        context.window_manager.event_timer_remove(self._timer)
+    frame_end: bpy.props.IntProperty(
+        name="Frame End",
+        default=100,        
+        )
 
     def execute(self, context):
+        
+        #Render loop
+        for frame in range(self.frame_start, self.frame_end + 1):    
+            bpy.context.scene.frame_set(frame)
+            number = f'{frame:03}'
+            bpy.context.scene.render.filepath = self.path + number
+            bpy.ops.render.render( write_still=True )
+        
+        #Restore path
+        bpy.context.scene.render.filepath = self.path
+        return {'FINISHED'}
+    
+
+    def invoke(self, context, event):
         if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
             self.report({'ERROR'}, 'Load Settings before render')
             return {'CANCELLED'}
-        if bpy.context.scene.playback is not None:
-            self.playback = bpy.context.scene.playback
-            bpy.context.scene.playback = True
-
+        #self.console = False
         set_render_settings()
         self.path = load_settings('render_output')
-        self.current_frame = context.scene.frame_start
-        self.last_frame = context.scene.frame_end
-        self.stop = False
-        self.rendering = False
-        self.add_handlers(context)
-        return {"RUNNING_MODAL"}
+        self.frame_start = context.scene.frame_start
+        self.frame_end = context.scene.frame_end
 
-    def modal(self, context, event):            
-        if event.type == 'TIMER':
-            if self.stop:
-                self.remove_handlers(context)
-                if bpy.context.scene.playback is not None:
-                    bpy.context.scene.playback = self.playback
-                return {"CANCELLED"}
-            if self.current_frame > self.last_frame:
-                self.remove_handlers(context)
-                if bpy.context.scene.playback is not None:
-                    bpy.context.scene.playback = self.playback
-                return {"FINISHED"}
-            if self.rendering is False:
-                sc = context.scene
-                number = f'{self.current_frame:03}'
-                sc.render.filepath = self.path + number
-                sc.frame_set(self.current_frame)
-                bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
-        return {"PASS_THROUGH"}
-"""      
+
 class WORKFLOW_OT_custom_preview(bpy.types.Operator, ExportHelper):
     
     bl_idname = "workflow.custom_preview"
