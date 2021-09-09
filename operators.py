@@ -208,6 +208,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
     path = None
     playback = False
 
+
     current_frame: bpy.props.IntProperty(
         name="Frame Start",
         default=1,
@@ -216,6 +217,16 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
     frame_end: bpy.props.IntProperty(
         name="Frame End",
         default=10,
+        )
+
+    preview: bpy.props.BoolProperty(
+        name="Export Preview",
+        default=True,
+        )
+
+    console: bpy.props.BoolProperty(
+        name="Console Rendering",
+        default=False,
         )
 
     def pre(self, scene, context):
@@ -250,7 +261,21 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             bpy.context.scene.illu_playback = self.playback
 
     def execute(self, context):
+        if self.console:
+            if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
+                self.report({'ERROR'}, 'Load Settings before render')
+                return {'CANCELLED'}
+            set_render_settings()
+            self.path = load_settings('render_output')
+            self.current_frame = context.scene.frame_start
+            self.frame_end = context.scene.frame_end
 
+        if self.preview:
+            bpy.context.scene.render.image_settings.use_preview = True
+        else:
+            bpy.context.scene.render.image_settings.use_preview = False
+
+        self.frame_start = self.current_frame
         self.stop = False
         self.rendering = False
         self.add_handlers(context)
@@ -260,7 +285,10 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             self.playback = bpy.context.scene.illu_playback
             bpy.context.scene.illu_playback = False
         
-        self.report({'INFO'}, "Rendering in progress")
+        
+
+        
+        self.report({'INFO'}, "Render in progress")
 
         return {"RUNNING_MODAL"}
 
@@ -272,8 +300,13 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                 return {"CANCELLED"}
             if self.current_frame > self.frame_end:
                 self.remove_handlers(context)
-                return {"FINISHED"}
-            
+                self.report({'INFO'}, "Render complete")
+                if self.preview:
+                    images_path = bpy.path.abspath(os.path.dirname(self.path))                 
+                    encode_preview(images_path, self.frame_start, self.frame_end)
+                if self.console:
+                    bpy.ops.wm.quit_blender()
+                return {"FINISHED"}            
             if self.rendering is False:             
                 sc = context.scene
                 number = f'{self.current_frame:03}'
@@ -283,7 +316,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             
         if event.type in {'ESC'}:
             self.remove_handlers(context)
-            self.report({'INFO'}, "Rendering cancelled")
+            self.report({'INFO'}, "Render cancelled")
             return {'CANCELLED'}
 
         return {"PASS_THROUGH"}
@@ -295,6 +328,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             return {'CANCELLED'}
         set_render_settings()
         self.path = load_settings('render_output')
+
         self.current_frame = context.scene.frame_start
         self.frame_end = context.scene.frame_end
         

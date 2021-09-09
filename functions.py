@@ -1244,7 +1244,48 @@ def update_cam_link():
 
                 
 
+def encode_preview(images_path, start, end):
+    scene = bpy.context.scene
+    #Get images    
+    images = os.listdir(images_path)
+    images = [ image for image in images if image.endswith(".jpg") ]
+    images.sort() 
+    
+    #Create Sequence    
+    preview_sequence = scene.sequence_editor.sequences.new_image("preview", os.path.join(images_path, images[0]), channel = 1, frame_start = start)
+    
+    for image in images[1:]:
+        preview_sequence.elements.append(image)
 
+    #Set render settings
+    scene.render.engine = "BLENDER_EEVEE"
+    scene.render.image_settings.file_format = "FFMPEG"
+    scene.render.image_settings.color_mode = "RGB"
+    scene.render.ffmpeg.format = "QUICKTIME"
+    scene.render.ffmpeg.codec = "H264"
+    scene.render.ffmpeg.constant_rate_factor = "HIGH"
+    scene.render.ffmpeg.ffmpeg_preset = "GOOD"
+    scene.render.ffmpeg.audio_codec = "MP3"
+    
+    scene.render.filepath = load_settings('preview_output')
+
+    bake_start = scene.frame_start
+    bake_end = scene.frame_end
+    scene.frame_start = start
+    scene.frame_end = end
+
+    #RENDER
+    bpy.ops.render.render(animation=True)
+
+    #Cleanup
+    scene.sequence_editor.sequences.remove(preview_sequence)
+
+    for image in images:
+        image_path = os.path.join(images_path, image)
+        os.remove(image_path)
+
+    scene.frame_start = bake_start
+    scene.frame_end = bake_end
 
 
 
