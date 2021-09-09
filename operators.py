@@ -193,7 +193,10 @@ class WORKFLOW_OT_publish_preview(bpy.types.Operator):
             self.report({'ERROR'}, 'Load Settings before Playblast')
             return {'CANCELLED'}
 
-class WORKFLOW_OT_render_TODELETE(bpy.types.Operator): #Old render to delete
+
+
+
+class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
     
     bl_idname = "workflow.render"
     bl_label = "Render"
@@ -203,8 +206,7 @@ class WORKFLOW_OT_render_TODELETE(bpy.types.Operator): #Old render to delete
     stop = None
     rendering = None
     path = None
-    playback = None
-    console = True
+    playback = False
 
     current_frame: bpy.props.IntProperty(
         name="Frame Start",
@@ -213,18 +215,16 @@ class WORKFLOW_OT_render_TODELETE(bpy.types.Operator): #Old render to delete
 
     frame_end: bpy.props.IntProperty(
         name="Frame End",
-        default=100,        
+        default=10,
         )
-
-
 
     def pre(self, scene, context):
         self.rendering = True
         print ("")   
 
-    def post(self, scene, context):
+    def post(self, scene, context):        
         self.current_frame += 1
-        self.rendering = False
+        self.rendering = False  
         print ("")   
 
     def cancelled(self, scene, context):
@@ -245,115 +245,62 @@ class WORKFLOW_OT_render_TODELETE(bpy.types.Operator): #Old render to delete
         bpy.app.handlers.render_cancel.remove(self.cancelled)
         context.window_manager.event_timer_remove(self._timer)
 
-    def execute(self, context):
-        
-        if self.console:            
-            if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
-                self.report({'ERROR'}, 'Load Settings before render')
-                return {'CANCELLED'}
-            set_render_settings()
-            self.path = load_settings('render_output')
-            self.current_frame = context.scene.frame_start
-            self.frame_end = context.scene.frame_end
-            #self.frame_end = 3 #DEBUG
+        #Restore Illu Playback
+        if hasattr(bpy.context.scene, "illu_playback"):
+            bpy.context.scene.illu_playback = self.playback
 
-        if bpy.context.scene.illu_playback is not None:
-            self.playback = bpy.context.scene.illu_playback
-            bpy.context.scene.illu_playback = True
-        
+    def execute(self, context):
+
         self.stop = False
         self.rendering = False
         self.add_handlers(context)
+        
+        #Disable Illu Playback
+        if hasattr(bpy.context.scene, "illu_playback"):
+            self.playback = bpy.context.scene.illu_playback
+            bpy.context.scene.illu_playback = False
+        
+        self.report({'INFO'}, "Rendering in progress")
+
         return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
-              
-        if event.type == 'TIMER':
+        
+        if event.type == 'TIMER': 
             if self.stop:
                 self.remove_handlers(context)
-                if bpy.context.scene.illu_playback is not None:
-                    bpy.context.scene.illu_playback = self.playback
                 return {"CANCELLED"}
             if self.current_frame > self.frame_end:
                 self.remove_handlers(context)
-                if bpy.context.scene.illu_playback is not None:
-                    bpy.context.scene.illu_playback = self.playback
                 return {"FINISHED"}
-            if self.rendering is False:
+            
+            if self.rendering is False:             
                 sc = context.scene
                 number = f'{self.current_frame:03}'
                 sc.render.filepath = self.path + number
                 sc.frame_set(self.current_frame)
-                bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+                bpy.ops.render.render(write_still=True)
+            
+        if event.type in {'ESC'}:
+            self.remove_handlers(context)
+            self.report({'INFO'}, "Rendering cancelled")
+            return {'CANCELLED'}
 
         return {"PASS_THROUGH"}
-
+        #return {'RUNNING_MODAL'}
+    
     def invoke(self, context, event):
         if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
             self.report({'ERROR'}, 'Load Settings before render')
             return {'CANCELLED'}
-        self.console = False
         set_render_settings()
         self.path = load_settings('render_output')
         self.current_frame = context.scene.frame_start
         self.frame_end = context.scene.frame_end
+        
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
-
-
-class WORKFLOW_OT_render(bpy.types.Operator):
-    
-    bl_idname = "workflow.render"
-    bl_label = "Render Animation"
-    bl_description = "Render Animation"
-
-    frame_start: bpy.props.IntProperty(
-        name="Frame Start",
-        default=1,
-        )
-
-    frame_end: bpy.props.IntProperty(
-        name="Frame End",
-        default=100,        
-        )
-
-    def execute(self, context):
-        #Disable Illu Playback
-        if hasattr(bpy.context.scene, "illu_playback"):
-            playback = bpy.context.scene.illu_playback
-            bpy.context.scene.illu_playback = False
-        
-        #Render loop
-        for frame in range(self.frame_start, self.frame_end + 1):    
-            bpy.context.scene.frame_set(frame)
-            number = f'{frame:03}'
-            bpy.context.scene.render.filepath = self.path + number
-            bpy.ops.render.render( write_still=True )
-        
-        #Restore path
-        bpy.context.scene.render.filepath = self.path
-
-        #Restore Illu Playback
-        if hasattr(bpy.context.scene, "illu_playback"):
-            bpy.context.scene.illu_playback = playback
-
-        return {'FINISHED'}
-    
-
-    def invoke(self, context, event):
-        if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
-            self.report({'ERROR'}, 'Load Settings before render')
-            return {'CANCELLED'}
-        #self.console = False
-        set_render_settings()
-        self.path = load_settings('render_output')
-        self.frame_start = context.scene.frame_start
-        self.frame_end = context.scene.frame_end
-
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
 
 class WORKFLOW_OT_custom_preview(bpy.types.Operator, ExportHelper):
     
