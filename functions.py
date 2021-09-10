@@ -314,6 +314,10 @@ def set_render_settings():
     scene = bpy.context.scene
 
     #Change Settings
+    scene.render.engine = "CYCLES"
+    scene.cycles.device = "GPU"
+    scene.cycles.samples = 128
+
     scene.render.image_settings.file_format = "OPEN_EXR_MULTILAYER"
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.image_settings.color_depth = "32"
