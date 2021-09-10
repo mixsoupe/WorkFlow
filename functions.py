@@ -1183,6 +1183,7 @@ def check_asset(path, current_date):
 def check_updates():
     update_list = []
     objects_uid = []
+    to_update = []
 
     for obj in bpy.context.scene.objects:
         if obj.relink.uid is not None:
@@ -1202,11 +1203,15 @@ def check_updates():
             update = check_asset(item.path, item.version)
             if update:
                 update_list.append(item.data_name)
+                to_update.append(item.uid)
 
     update_list = list(set(update_list))
     if update_list:
         message = "New asset version for " + ", ".join(update_list)
         bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
+    
+    return to_update
+    
 
 def get_bpy_struct( obj_id, path):
     """ Gets a bpy_struct or property from an ID and an RNA path
@@ -1302,8 +1307,10 @@ def encode_preview(images_path, start, end):
     if hasattr(scene, "illu_render"):        
         scene.illu_render = bake_illu_render
 
-
-
+def update_all_assets():
+    to_update = check_updates()
+    for item in to_update:
+        relink(item)
 
 
 

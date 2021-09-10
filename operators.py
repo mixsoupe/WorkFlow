@@ -270,6 +270,15 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             self.current_frame = context.scene.frame_start
             self.frame_end = context.scene.frame_end
 
+            for screen in bpy.data.screens:
+                for area in screen.areas:
+                        if area.type == 'VIEW_3D':
+                            for space in area.spaces:
+                                if space.type == 'VIEW_3D':
+                                    space.overlay.show_overlays = False    
+                                    space.shading.type = 'SOLID'
+            update_all_assets()
+
         if self.preview:
             bpy.context.scene.render.image_settings.use_preview = True
         else:
