@@ -1273,10 +1273,17 @@ def encode_preview(images_path, start, end):
     
     scene.render.filepath = load_settings('preview_output')
 
+    #Keep parameters
     bake_start = scene.frame_start
     bake_end = scene.frame_end
     scene.frame_start = start
     scene.frame_end = end
+
+    bake_illu_render = False
+    if hasattr(scene, "illu_render"):
+        bake_illu_render = scene.illu_render
+        scene.illu_render = False
+
 
     #RENDER
     bpy.ops.render.render(animation=True)
@@ -1288,8 +1295,12 @@ def encode_preview(images_path, start, end):
         image_path = os.path.join(images_path, image)
         os.remove(image_path)
 
+    #Restore parameters
     scene.frame_start = bake_start
     scene.frame_end = bake_end
+
+    if hasattr(scene, "illu_render"):        
+        scene.illu_render = bake_illu_render
 
 
 
