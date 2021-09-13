@@ -316,6 +316,7 @@ def set_render_settings():
     #Change Settings
     scene.render.engine = "CYCLES"
     scene.cycles.device = "GPU"
+    scene.cycles.samples = 32
 
     scene.render.image_settings.file_format = "OPEN_EXR_MULTILAYER"
     scene.render.image_settings.color_mode = "RGBA"
