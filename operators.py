@@ -277,7 +277,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                                 if space.type == 'VIEW_3D':
                                     space.overlay.show_overlays = False    
                                     space.shading.type = 'SOLID'
-            update_all_assets()
+            #update_all_assets()
 
         if self.preview:
             bpy.context.scene.render.image_settings.use_preview = True
