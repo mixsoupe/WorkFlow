@@ -316,12 +316,19 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                 if self.console:
                     bpy.ops.wm.quit_blender()
                 return {"FINISHED"}            
-            if self.rendering is False:             
+            if self.rendering is False:
+                if self.console:
+                    total = (self.frame_end - self.frame_start + 1)
+                    data = {"current" : self.current_frame, "total" : total}
+                    data =json.dumps(data)
+                    os.system('echo {}'.format(data))
+                                             
                 sc = context.scene
                 number = f'{self.current_frame:03}'
                 sc.render.filepath = self.path + number
                 sc.frame_set(self.current_frame)
                 bpy.ops.render.render(write_still=True)
+
             
         if event.type in {'ESC'}:
             self.remove_handlers(context)
