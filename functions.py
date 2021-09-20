@@ -1259,13 +1259,13 @@ def encode_preview(images_path, start, end):
     images = os.listdir(images_path)
     images = [ image for image in images if image.endswith(".jpg") ]
     images.sort() 
-    
+
     #Create Sequence    
-    preview_sequence = scene.sequence_editor.sequences.new_image("preview", os.path.join(images_path, images[0]), channel = 1, frame_start = start)
+    preview_sequence = scene.sequence_editor.sequences.new_image("preview", os.path.join(images_path, images[0]), channel = 5, frame_start = start)
     
     for image in images[1:]:
         preview_sequence.elements.append(image)
-
+    
     #Set render settings
     scene.render.engine = "BLENDER_EEVEE"
     scene.render.image_settings.file_format = "FFMPEG"
@@ -1296,17 +1296,18 @@ def encode_preview(images_path, start, end):
     #Cleanup
     scene.sequence_editor.sequences.remove(preview_sequence)
 
+    
     for image in images:
         image_path = os.path.join(images_path, image)
         os.remove(image_path)
-
+    
     #Restore parameters
     scene.frame_start = bake_start
     scene.frame_end = bake_end
 
     if hasattr(scene, "illu_render"):        
         scene.illu_render = bake_illu_render
-
+    
 def update_all_assets():
     to_update = check_updates()
     for item in to_update:

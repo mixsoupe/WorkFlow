@@ -15,6 +15,7 @@
 
 import bpy
 import os
+import sys
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from . functions import *
 from . operators import *
@@ -351,6 +352,60 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
+
+class WORKFLOW_OT_batch_render(bpy.types.Operator):
+    
+    bl_idname = "workflow.batch_render"
+    bl_label = "Batch Render"
+    bl_description = "Batch Render Scene"
+
+    
+    def execute(self, context):        
+        #SETTINGS
+        if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
+            self.report({'ERROR'}, 'Load Settings before render')
+            return {'CANCELLED'}
+        if hasattr(bpy.context.scene, "illu_playback"):
+            playback = bpy.context.scene.illu_playback
+            bpy.context.scene.illu_playback = False
+        set_render_settings()
+        bpy.context.scene.render.image_settings.use_preview = True
+        path = load_settings('render_output')
+        frame_start = context.scene.frame_start
+        frame_end = context.scene.frame_end
+
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                    if area.type == 'VIEW_3D':
+                        for space in area.spaces:
+                            if space.type == 'VIEW_3D':
+                                space.overlay.show_overlays = False    
+                                space.shading.type = 'SOLID'
+
+        #RENDER LOOP        
+        total = (frame_end - frame_start + 1)
+        for frame in range (frame_start, frame_end + 1):
+            #ECHO
+            data = {"current" : frame, "total" : total}
+            data =json.dumps(data)
+            os.system('echo {}'.format(data))
+            sys.stdout.flush()
+
+            #RENDER
+            number = f'{frame:03}'
+            context.scene.render.filepath = path + number
+            context.scene.frame_set(frame)
+            bpy.ops.render.render(write_still=True)
+
+        images_path = bpy.path.abspath(os.path.dirname(path))                 
+        encode_preview(images_path, frame_start, frame_end)
+
+        if hasattr(bpy.context.scene, "illu_playback"):
+            bpy.context.scene.illu_playback = playback
+
+        bpy.ops.wm.quit_blender()
+
+        return {"FINISHED"}
 
 class WORKFLOW_OT_custom_preview(bpy.types.Operator, ExportHelper):
     
