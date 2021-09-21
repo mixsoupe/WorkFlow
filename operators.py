@@ -208,6 +208,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
     rendering = None
     path = None
     playback = False
+    message = None
 
 
     current_frame: bpy.props.IntProperty(
@@ -278,8 +279,11 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                                 if space.type == 'VIEW_3D':
                                     space.overlay.show_overlays = False    
                                     space.shading.type = 'SOLID'
-            #update_all_assets()
-
+            #Check asset
+            assets_to_update= check_updates()[1]
+            if assets_to_update:
+                self.message = "Update asset {}".format(str(assets_to_update))
+                
         if self.preview:
             bpy.context.scene.render.image_settings.use_preview = True
         else:
@@ -320,7 +324,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             if self.rendering is False:
                 if self.console:
                     total = (self.frame_end - self.frame_start + 1)
-                    data = {"current" : self.current_frame, "total" : total}
+                    data = {"current" : self.current_frame, "total" : total, "message": self.message}
                     data =json.dumps(data)
                     os.system('echo {}'.format(data))
                                              
@@ -968,6 +972,17 @@ class WORKFLOW_OT_update_cam_link(bpy.types.Operator):
     
     def execute(self, context):
         update_cam_link()        
+        return {'FINISHED'}
+
+class WORKFLOW_OT_update_all_assets(bpy.types.Operator):
+    
+    bl_idname = "workflow.update_all_assets"
+    bl_label = "Update All Assets"
+    bl_description = "Update All Assets"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+        check_updates(auto = True)      
         return {'FINISHED'}
 
 

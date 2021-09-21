@@ -18,7 +18,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 9, 9),
+    "version" : (1, 10, 0),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -96,7 +96,8 @@ def update_handler(dummy):
 
 @persistent
 def load_handler(dummy):
-    check_updates()
+    auto = bpy.context.scene.auto_update_assets
+    check_updates(auto = auto)
     update_cam_link()
 
 #REGISTER UNREGISTER
@@ -143,6 +144,7 @@ classes = (
     WORKFLOW_OT_update_cam_link,
     WORKFLOW_OT_render,
     WORKFLOW_OT_batch_render,
+    WORKFLOW_OT_update_all_assets,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]
@@ -168,6 +170,9 @@ def register():
 
     if not hasattr( bpy.types.Scene, 'relink'):
         bpy.types.Scene.relink = bpy.props.CollectionProperty(type=RELINK_PROP_Scene)
+
+    if not hasattr( bpy.types.Scene, 'auto_update_assets'):
+        bpy.types.Scene.auto_update_assets = bpy.props.BoolProperty(name="Auto Update Assets", default=False)
     
     if not hasattr( bpy.types.ShaderNodeGroup, 'override'):
         bpy.types.ShaderNodeGroup.override = bpy.props.BoolProperty(name="Override", default=False)
@@ -192,6 +197,7 @@ def unregister():
     del bpy.types.Camera.render
     del bpy.types.Scene.previous_camera
     del bpy.types.Scene.animation_filepath
+    del bpy.types.Scene.auto_update_assets
     del bpy.types.Scene.relink
     del bpy.types.ShaderNodeGroup.override_colors
     del bpy.types.ShaderNodeGroup.override

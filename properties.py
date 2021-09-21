@@ -106,8 +106,8 @@ class RELINK_PROP_Scene(bpy.types.PropertyGroup):
         )
     data_name: bpy.props.StringProperty(
         name="data_name",
-        )      
-    
+        )    
+
 class RELINK_PROP_Data(bpy.types.PropertyGroup):
 
     uid: bpy.props.StringProperty(

@@ -65,26 +65,31 @@ class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
     bl_category = "WorkFlow"
     #bl_options = {'DEFAULT_CLOSED'}
         
+    """
     @classmethod
     def poll(cls,context):
         obj = context.active_object
         if obj is not None:
             if obj.relink.uid != "":       
                 return True
+    """
 
-
-    def draw(self, context):
+    def draw(self, context):        
         obj = context.active_object
-        layout = self.layout
-        for item in context.scene.relink:            
-            if item.uid == obj.relink.uid:
-                layout.label(text = item.data_name )
-                layout.label(text = item.uid ) 
-                layout.prop(item, "path", text="Path")   
-                layout.label(text = "VERSION: " + item.version)
-                layout.operator("workflow.update_asset")
-                if check_asset(item.path, item.version):                    
-                    layout.label(text = "NEW VERSION AVAILABLE", icon ="ERROR")
+        layout = self.layout 
+        layout.prop(context.scene, "auto_update_assets")   
+
+        for item in context.scene.relink:
+            if hasattr (obj, "relink"):        
+                if item.uid == obj.relink.uid:
+                    layout.label(text = item.data_name )
+                    layout.label(text = item.uid ) 
+                    layout.prop(item, "path", text="Path")   
+                    layout.label(text = "VERSION: " + item.version)
+                    layout.operator("workflow.update_asset")
+                    if check_asset(item.path, item.version):                    
+                        layout.label(text = "NEW VERSION AVAILABLE", icon ="ERROR")
+        layout.operator("workflow.update_all_assets")
 
 
 class WORKFLOW_PT_view3d_layout_tools(bpy.types.Panel):
