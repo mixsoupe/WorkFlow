@@ -866,11 +866,15 @@ def relink(uid):
                 obj.data.name = obj.data.name + str(uid)
             old_objects[obj.relink.original_name] = obj
     #Keep Shader parameters
-    materials_settings = {}
+    materials_settings = {}    
     for material in bpy.data.materials:
         if material.relink.uid == uid:
             if material.node_tree is not None:
                 for node_tree in traverse_node_tree(material.node_tree):
+                    node_tree_action = None
+                    if node_tree.animation_data is not None:
+                        if node_tree.animation_data.action is not None:                            
+                            node_tree_action = node_tree.animation_data.action
                     for node in node_tree.nodes:
                         if node.bl_idname in ('ShaderNodeGroup', 'ILLU_2DShade'):
                             if node.override:
@@ -892,6 +896,7 @@ def relink(uid):
                                     else:
                                         value = input.default_value                                                      
                                     parameters[input.name] = value
+                                    parameters["action"] = node_tree_action
                                 materials_settings[material.name] = {node.node_tree.name : parameters}
 
     #Remove collections
@@ -944,7 +949,6 @@ def relink(uid):
             #Remap actions
             if obj.relink.original_name in actions.keys():                
                 if obj.animation_data is not None:
-                    print (obj.relink.original_name)
                     obj.animation_data.action = actions[obj.relink.original_name]
 
 
@@ -1019,6 +1023,9 @@ def relink(uid):
                                                 input.default_value = bpy.data.objects[value]
                                             else:
                                                 input.default_value = value
+                                
+                                    if node_settings["action"]:
+                                        node_tree.animation_data.action = node_settings["action"]
   
     #Delete old objects
     for old_obj in old_objects.values():    
