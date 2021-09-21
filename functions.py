@@ -1229,7 +1229,7 @@ def check_updates(auto = False):
         message = "New asset version for " + ", ".join(update_list)
         bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
     
-    return
+    return update_list
 
 def get_bpy_struct( obj_id, path):
     """ Gets a bpy_struct or property from an ID and an RNA path

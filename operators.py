@@ -280,7 +280,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                                     space.overlay.show_overlays = False    
                                     space.shading.type = 'SOLID'
             #Check asset
-            assets_to_update= check_updates()[1]
+            assets_to_update= check_updates()
             if assets_to_update:
                 self.message = "Update asset {}".format(str(assets_to_update))
                 
