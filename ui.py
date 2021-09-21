@@ -85,10 +85,12 @@ class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
                     layout.label(text = item.data_name )
                     layout.label(text = item.uid ) 
                     layout.prop(item, "path", text="Path")   
-                    layout.label(text = "VERSION: " + item.version)
-                    layout.operator("workflow.update_asset")
+                    layout.label(text = "VERSION: " + item.version)                    
                     if check_asset(item.path, item.version):                    
                         layout.label(text = "NEW VERSION AVAILABLE", icon ="ERROR")
+                    layout.operator("workflow.update_asset")
+                    layout.operator("workflow.delete_link")
+                    layout.row().separator()
         layout.operator("workflow.update_all_assets")
 
 

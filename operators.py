@@ -985,4 +985,18 @@ class WORKFLOW_OT_update_all_assets(bpy.types.Operator):
         check_updates(auto = True)      
         return {'FINISHED'}
 
+class WORKFLOW_OT_delete_link(bpy.types.Operator):
+    
+    bl_idname = "workflow.delete_link"
+    bl_label = "Delete Link"
+    bl_description = "Delete Link"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+        delete_link()   
+        return {'FINISHED'}
+        
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
+
 

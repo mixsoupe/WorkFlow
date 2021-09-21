@@ -1326,6 +1326,16 @@ def encode_preview(images_path, start, end):
     if hasattr(scene, "illu_render"):        
         scene.illu_render = bake_illu_render
     
+def delete_link():
+    obj = bpy.context.active_object 
+
+    relink = bpy.context.scene.relink
+
+    for i, item in enumerate(relink):
+        if item.uid == obj.relink.uid:
+            relink.remove(i)
+            break
+
 
 
 

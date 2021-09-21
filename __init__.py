@@ -18,7 +18,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 10, 1),
+    "version" : (1, 10, 2),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -145,6 +145,7 @@ classes = (
     WORKFLOW_OT_render,
     WORKFLOW_OT_batch_render,
     WORKFLOW_OT_update_all_assets,
+    WORKFLOW_OT_delete_link,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]
