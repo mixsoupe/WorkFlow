@@ -324,7 +324,7 @@ def set_render_settings():
     scene.render.image_settings.exr_codec = "ZIP"
     scene.render.use_overwrite = True
 
-    scene.render.film_transparent = False
+    scene.render.film_transparent = True
 
     #Metadata
     scene.render.use_stamp_note = False
