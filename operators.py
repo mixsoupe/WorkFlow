@@ -280,10 +280,17 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                                     space.overlay.show_overlays = False    
                                     space.shading.type = 'SOLID'
             #Check asset
+            """
             assets_to_update= check_updates()
             if assets_to_update:
                 self.message = "Update asset {}".format(str(assets_to_update))
-                
+            """
+            check_updates(auto = True)
+            
+            bpy.ops.workflow.update_all_assets()
+            bpy.ops.workflow.sync_visibility()
+
+
         if self.preview:
             bpy.context.scene.render.image_settings.use_preview = True
         else:
@@ -298,6 +305,10 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
         if hasattr(bpy.context.scene, "illu_playback"):
             self.playback = bpy.context.scene.illu_playback
             bpy.context.scene.illu_playback = False
+        #Enable Illu Render
+        if hasattr(bpy.context.scene, "illu_render"):
+            bpy.context.scene.illu_render = True
+        
         
         
 

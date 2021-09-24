@@ -18,7 +18,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 10, 4),
+    "version" : (1, 10, 5),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
