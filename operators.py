@@ -187,7 +187,7 @@ class WORKFLOW_OT_publish_preview(bpy.types.Operator):
 
     def execute(self, context):
         if context.preferences.addons['WorkFlow'].preferences.production_settings_file:
-            filepath = load_settings('preview_output')
+            filepath = load_settings('publish_output')
             preview(filepath, publish = True)
             return {'FINISHED'}
         else:
@@ -235,7 +235,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
         self.rendering = True
         print ("")   
 
-    def post(self, scene, context):        
+    def post(self, scene, context):     
         self.current_frame += 1
         self.rendering = False  
         print ("")   
@@ -342,7 +342,7 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                 sc = context.scene
                 number = f'{self.current_frame:03}'
                 sc.render.filepath = self.path + number
-                sc.frame_set(self.current_frame)
+                sc.frame_set(self.current_frame)                
                 bpy.ops.render.render(write_still=True)
 
             
@@ -355,6 +355,9 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
         #return {'RUNNING_MODAL'}
     
     def invoke(self, context, event):
+        #DEBUG
+        #filepath = "U:/02-ASSETS/ADDONS/yuku.ini"
+        #bpy.context.preferences.addons['WorkFlow'].preferences.production_settings_file = filepath
         if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
             self.report({'ERROR'}, 'Load Settings before render')
             return {'CANCELLED'}
