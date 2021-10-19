@@ -18,7 +18,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 12, 0),
+    "version" : (1, 12, 1),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -98,10 +98,14 @@ def update_handler(dummy):
 def load_handler(dummy):
     auto = bpy.context.scene.auto_update_assets
     check_updates(auto = auto)
-    state, file = check_anim()
-    if state:
-        message = "New animation to update"
-        bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
+    try:
+        state, file = check_anim()
+        if state:
+            message = "New animation to update"
+            bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
+    except:
+        pass
+    
     update_cam_link()
 
 #REGISTER UNREGISTER

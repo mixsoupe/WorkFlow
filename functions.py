@@ -1342,12 +1342,14 @@ def check_anim():
     filepath = bpy.context.blend_data.filepath
     filename = bpy.path.basename(filepath)
     folder_path = os.path.dirname(filepath)
+    if "03-PRODUCTION" not in folder_path:
+        return False, None
     files = os.listdir(folder_path)
-    files = [ file for file in files if file.endswith(".blend") ]
+    files = [ file for file in files if file.endswith(".blend")]
     files = [ os.path.join(folder_path, file) for file in files if "rend" not in file.lower() ]
 
     other_file = max(files, key=os.path.getmtime)
-
+    
     if os.path.getmtime(other_file) > os.path.getmtime(filepath):
         return True, other_file
     else:
