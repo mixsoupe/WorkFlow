@@ -18,7 +18,7 @@ bl_info = {
     "author" : "Paul",
     "description" : "",
     "blender" : (2, 91, 0),
-    "version" : (1, 11, 0),
+    "version" : (1, 12, 0),
     "location" : "View3D",
     "warning" : "",
     "category" : "",
@@ -98,6 +98,10 @@ def update_handler(dummy):
 def load_handler(dummy):
     auto = bpy.context.scene.auto_update_assets
     check_updates(auto = auto)
+    state, file = check_anim()
+    if state:
+        message = "New animation to update"
+        bpy.ops.workflow.info('INVOKE_DEFAULT', message = message)
     update_cam_link()
 
 #REGISTER UNREGISTER
@@ -146,6 +150,7 @@ classes = (
     WORKFLOW_OT_batch_render,
     WORKFLOW_OT_update_all_assets,
     WORKFLOW_OT_delete_link,
+    WORKFLOW_OT_update_animation,
     )
 
 relink_types = ["Object", "Collection", "Material", "Image", "Action", "NodeTree", "ParticleSettings", "PoseBone"]

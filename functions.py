@@ -318,12 +318,13 @@ def set_render_settings():
     scene.cycles.device = "GPU"
     scene.cycles.samples = 32
 
+    
     scene.render.image_settings.file_format = "OPEN_EXR_MULTILAYER"
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.image_settings.color_depth = "32"
     scene.render.image_settings.exr_codec = "ZIP"
     scene.render.use_overwrite = True
-
+    
     scene.render.film_transparent = True
 
     #Metadata
@@ -334,7 +335,7 @@ def set_render_settings():
     bpy.context.view_layer.use_pass_cryptomatte_object = True
     bpy.context.view_layer.use_pass_cryptomatte_material = False
     bpy.context.view_layer.use_pass_cryptomatte_asset = False
-    bpy.context.view_layer.pass_cryptomatte_depth = 6 
+    bpy.context.view_layer.pass_cryptomatte_depth = 6
     bpy.context.view_layer.use_pass_cryptomatte_accurate = True
 
     #Render
@@ -1335,6 +1336,56 @@ def delete_link():
         if item.uid == obj.relink.uid:
             relink.remove(i)
             break
+
+
+def check_anim():
+    filepath = bpy.context.blend_data.filepath
+    filename = bpy.path.basename(filepath)
+    folder_path = os.path.dirname(filepath)
+    files = os.listdir(folder_path)
+    files = [ file for file in files if file.endswith(".blend") ]
+    files = [ os.path.join(folder_path, file) for file in files if "rend" not in file.lower() ]
+
+    other_file = max(files, key=os.path.getmtime)
+
+    if os.path.getmtime(other_file) > os.path.getmtime(filepath):
+        return True, other_file
+    else:
+        return False, other_file
+
+def update_anim(file):    
+    #Get actions relations
+    with bpy.data.libraries.load(file, link=True) as (data_link_from, data_link_to):
+        data_link_to.objects = [a for a in data_link_from.objects]
+
+    new_actions = {}
+    for obj in data_link_to.objects:
+        if obj.animation_data is not None:
+            if obj.animation_data.action is not None:
+                new_actions[obj.name] = obj.animation_data.action.name
+
+    bpy.data.libraries.remove(obj.library)
+
+    #Append actions
+    with bpy.data.libraries.load(file, link=True) as (data_link_from, data_link_to):
+        data_link_to.actions = [a for a in data_link_from.actions]
+
+    for obj in bpy.data.objects:
+        if obj.name in new_actions.keys():
+            action_name = new_actions[obj.name]
+            for action in data_link_to.actions:
+                if action.name == action_name:
+                    break
+            obj.animation_data.action  = action
+
+    library = action.library
+    for action in data_link_to.actions:
+        action.make_local()
+
+    bpy.data.libraries.remove(library)
+
+    bpy.ops.workflow.clean_up()
+
 
 
 

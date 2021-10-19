@@ -58,7 +58,7 @@ class WORKFLOW_PT_view3d_palette(bpy.types.Panel):
             layout.operator("workflow.color")
 
 class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
-    bl_label = "Asset"
+    bl_label = "Assets"
     bl_idname = "WORKFLOW_PT_view_3D_asset"
     bl_space_type = "VIEW_3D"   
     bl_region_type = "UI"
@@ -76,7 +76,9 @@ class WORKFLOW_PT_view3d_asset(bpy.types.Panel):
 
     def draw(self, context):        
         obj = context.active_object
-        layout = self.layout 
+        layout = self.layout
+        layout.operator("workflow.update_animation")
+        layout.row().separator()
         layout.prop(context.scene, "auto_update_assets")   
 
         for item in context.scene.relink:

@@ -290,6 +290,10 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             bpy.ops.workflow.update_all_assets()
             bpy.ops.workflow.sync_visibility()
 
+            #Update Animation
+            state, file = check_anim()
+            if state:
+                update_anim(file)
 
         if self.preview:
             bpy.context.scene.render.image_settings.use_preview = True
@@ -356,8 +360,8 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
     
     def invoke(self, context, event):
         #DEBUG
-        #filepath = "U:/02-ASSETS/ADDONS/yuku.ini"
-        #bpy.context.preferences.addons['WorkFlow'].preferences.production_settings_file = filepath
+        filepath = "U:/02-ASSETS/ADDONS/yuku.ini"
+        bpy.context.preferences.addons['WorkFlow'].preferences.production_settings_file = filepath
         if not context.preferences.addons['WorkFlow'].preferences.production_settings_file:
             self.report({'ERROR'}, 'Load Settings before render')
             return {'CANCELLED'}
@@ -1013,4 +1017,17 @@ class WORKFLOW_OT_delete_link(bpy.types.Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
 
+class WORKFLOW_OT_update_animation(bpy.types.Operator):
+    
+    bl_idname = "workflow.update_animation"
+    bl_label = "Update Animation"
+    bl_description = "Update Animation"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context):
+        state, file = check_anim()
 
+        update_anim(file)
+        self.report({'INFO'}, 'Animation updated')
+
+        return {'FINISHED'}
