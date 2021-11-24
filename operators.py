@@ -279,21 +279,16 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
                                 if space.type == 'VIEW_3D':
                                     space.overlay.show_overlays = False    
                                     space.shading.type = 'SOLID'
-            #Check asset
-            """
-            assets_to_update= check_updates()
-            if assets_to_update:
-                self.message = "Update asset {}".format(str(assets_to_update))
-            """
-            check_updates(auto = True)
             
-            bpy.ops.workflow.update_all_assets()
-            bpy.ops.workflow.sync_visibility()
+            check_updates(auto = True)
+            sync_visibility()
 
+            """ Disable update animation
             #Update Animation
             state, file = check_anim()
             if state:
                 update_anim(file)
+            """
 
         if self.preview:
             bpy.context.scene.render.image_settings.use_preview = True
