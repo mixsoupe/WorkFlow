@@ -283,13 +283,6 @@ class WORKFLOW_OT_render(bpy.types.Operator): #Old render to delete
             check_updates(auto = True)
             sync_visibility()
 
-            """ Disable update animation
-            #Update Animation
-            state, file = check_anim()
-            if state:
-                update_anim(file)
-            """
-
         if self.preview:
             bpy.context.scene.render.image_settings.use_preview = True
         else:
@@ -1012,17 +1005,55 @@ class WORKFLOW_OT_delete_link(bpy.types.Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
 
-class WORKFLOW_OT_update_animation(bpy.types.Operator):
+class WORKFLOW_OT_update_animation(bpy.types.Operator, ImportHelper):
     
     bl_idname = "workflow.update_animation"
-    bl_label = "Update Animation"
-    bl_description = "Update Animation"
+    bl_label = "Replace Animation"
+    bl_description = "Replace Animation"
     bl_options = {"REGISTER", "UNDO"}
+
+    filepath: bpy.props.StringProperty(
+        name="File Path",
+        maxlen= 1024
+        )
+
+    filter_glob: bpy.props.StringProperty(
+        default="*.blend",
+        options={'HIDDEN'},
+        maxlen=255,
+    )
+
+    @classmethod
+    def poll(cls,context):
+        obj = context.active_object
+        if obj is not None:
+            return True
     
     def execute(self, context):
-        state, file = check_anim()
+        #state, file = check_anim()
 
-        update_anim(file)
-        self.report({'INFO'}, 'Animation updated')
+        updated, same_animation = update_anim(self.filepath)
+
+        
+        
+
+        if updated or same_animation:
+            if updated:
+                updated_msg = 'Animation replaced for {}'.format(updated)
+            else:
+                updated_msg = ""
+            if same_animation:
+                same_msg = 'No animation change for {}'.format(same_animation)
+            else:
+                same_msg = ""
+            self.report({'INFO'}, same_msg+updated_msg)
+
+        else:
+            self.report({'WARNING'}, 'No animation to update')
 
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager.fileselect_add(self)
+        
+        return {'RUNNING_MODAL'}

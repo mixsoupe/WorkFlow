@@ -1355,6 +1355,7 @@ def check_anim():
     else:
         return False, other_file
 
+
 def update_anim(file):    
     #Get actions relations
     with bpy.data.libraries.load(file, link=True) as (data_link_from, data_link_to):
@@ -1372,25 +1373,77 @@ def update_anim(file):
     with bpy.data.libraries.load(file, link=True) as (data_link_from, data_link_to):
         data_link_to.actions = [a for a in data_link_from.actions]
 
-    for obj in bpy.data.objects:
+    updated = []
+    same_animation = []
+    objects_to_update = bpy.context.selected_objects
+
+    for obj in objects_to_update:
+        #Get link object by UID
+        if obj.relink.uid is not "":
+            uid = obj.relink.uid
+            for link_obj in bpy.data.objects:
+                if link_obj.relink.uid == uid:
+                    if link_obj not in objects_to_update:
+                        objects_to_update.append(link_obj)
+
         if obj.name in new_actions.keys():
             action_name = new_actions[obj.name]
-            for action in data_link_to.actions:
-                if action.name == action_name:
+            for new_action in data_link_to.actions:
+                if new_action.name == action_name:
                     break
-            obj.animation_data.action  = action
+            #Check if action exist            
+            if obj.animation_data is None:
+                obj.animation_data_create()
+                obj.animation_data.action = bpy.data.actions.new(obj.name+"Action")
 
-    library = action.library
+            old_action = obj.animation_data.action
+            if is_same_action (old_action, new_action):
+                same_animation.append(obj.name)
+            else :
+                obj.animation_data.action  = new_action
+                updated.append(obj.name)    
+
+              
+            
+
+    
     for action in data_link_to.actions:
         action.make_local()
-
-    bpy.data.libraries.remove(library)
+    
+    library = action.library
+    if library is not None:
+        bpy.data.libraries.remove(library)
 
     bpy.ops.workflow.clean_up()
 
-
-
-
+    return updated, same_animation
 
                
                 
+def is_same_action (action1, action2):
+    action1_data = []
+    action2_data = []
+    for fcu in action1.fcurves:
+        for keyframe in fcu.keyframe_points:
+            action1_data.append(keyframe.co[:])                                       
+            action1_data.append(keyframe.handle_left[:])                    
+            action1_data.append(keyframe.handle_right[:])
+            action1_data.append(keyframe.handle_left_type)
+            action1_data.append(keyframe.handle_right_type)
+            action1_data.append(keyframe.interpolation)
+            action1_data.append(keyframe.easing)
+
+    for fcu in action2.fcurves:
+        for keyframe in fcu.keyframe_points:
+            action2_data.append(keyframe.co[:])                                       
+            action2_data.append(keyframe.handle_left[:])                    
+            action2_data.append(keyframe.handle_right[:])
+            action2_data.append(keyframe.handle_left_type)
+            action2_data.append(keyframe.handle_right_type)
+            action2_data.append(keyframe.interpolation)
+            action2_data.append(keyframe.easing)
+
+    if action1_data == action2_data:
+        return True
+    else:
+        return False
