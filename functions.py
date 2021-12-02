@@ -948,10 +948,10 @@ def relink(uid):
     for obj in bpy.data.objects:
         if obj.relink.uid == str(new_uid):
             #Remap actions
-            if obj.relink.original_name in actions.keys():                
-                if obj.animation_data is not None:
-                    obj.animation_data.action = actions[obj.relink.original_name]
-
+            if obj.relink.original_name in actions.keys():
+                if obj.animation_data is None:
+                    obj.animation_data_create()
+                obj.animation_data.action = actions[obj.relink.original_name]  
 
             #Remap constraints
             if old_objects.get(obj.relink.original_name) is not None:      
@@ -1379,7 +1379,7 @@ def update_anim(file):
 
     for obj in objects_to_update:
         #Get link object by UID
-        if obj.relink.uid is not "":
+        if obj.relink.uid != "":
             uid = obj.relink.uid
             for link_obj in bpy.data.objects:
                 if link_obj.relink.uid == uid:
